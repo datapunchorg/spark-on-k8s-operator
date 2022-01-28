@@ -8,6 +8,7 @@ require (
 	github.com/docker/spdystream v0.0.0-20181023171402-6480d4af844c // indirect
 	github.com/elazarl/goproxy v0.0.0-20200421181703-e76ad31c14f6 // indirect
 	github.com/evanphx/json-patch v4.9.0+incompatible
+	github.com/gin-gonic/gin v1.7.6
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/google/go-cloud v0.1.1
 	github.com/google/uuid v1.1.1

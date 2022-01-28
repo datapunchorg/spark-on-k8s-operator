@@ -20,6 +20,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/GoogleCloudPlatform/spark-on-k8s-operator/pkg/apigateway/server"
 	"os"
 	"os/signal"
 	"strings"
@@ -75,6 +76,11 @@ var (
 	metricsPrefix                  = flag.String("metrics-prefix", "", "Prefix for the metrics.")
 	metricsLabels                  util.ArrayFlags
 	metricsJobStartLatencyBuckets  util.HistogramBuckets = util.DefaultJobStartLatencyBuckets
+	apiGatewayPort                 = flag.Int("api-gateway-port", 0, "API gateway REST server port.")
+	apiGatewayUrlPrefix            = flag.String("api-gateway-url-prefix", server.DefaultUrlPrefix, "API gateway REST server url prefix.")
+	apiGatewayUserName             = flag.String("api-gateway-user-name", "", "User name for API gateway REST server. If this is specified, people must provide the matching user name and password when sending request to the API gateway REST server.")
+	apiGatewayUserPassword         = flag.String("api-gateway-user-password", "", "User password for API gateway REST server. If this is specified together with user name, people must provide the matching user name and password when sending request to the API gateway REST server.")
+
 )
 
 func main() {
@@ -228,6 +234,20 @@ func main() {
 	}
 	if err = scheduledApplicationController.Start(*controllerThreads, stopCh); err != nil {
 		glog.Fatal(err)
+	}
+
+	if *apiGatewayPort > 0 {
+		go func() {
+			glog.Infof("Starting API gateway on port %v", *apiGatewayPort)
+			config := server.Config{
+				Port: *apiGatewayPort,
+				UrlPrefix: *apiGatewayUrlPrefix,
+				UserName: *apiGatewayUserName,
+				UserPassword: *apiGatewayUserPassword,
+				SparkApplicationNamespace: *namespace,
+			}
+			server.Run(config)
+		}()
 	}
 
 	select {
