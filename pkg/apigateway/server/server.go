@@ -84,6 +84,11 @@ func Run(config Config) {
 		}))
 	}
 
+	group.POST("/s3/upload",
+		func(context *gin.Context) {
+			handlers.UploadFile(context, s3Region, s3Bucket, s3Root)
+		})
+
 	group.POST("/submissions",
 		func(context *gin.Context) {
 			handlers.PostSubmission(context, &apiConfig)
