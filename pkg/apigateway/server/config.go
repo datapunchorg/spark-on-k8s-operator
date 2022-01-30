@@ -19,6 +19,7 @@ package server
 const (
 	DefaultS3Region = "us-west-1"
 	DefaultUrlPrefix = "/sparkapi"
+	DefaultS3Root = "api-gateway-root"
 )
 
 type Config struct {
