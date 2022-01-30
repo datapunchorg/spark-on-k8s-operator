@@ -240,13 +240,16 @@ func main() {
 
 	if *apiGatewayPort > 0 {
 		go func() {
-			glog.Infof("Starting API gateway on port %v", *apiGatewayPort)
+			glog.Infof("Starting API gateway on port %s, url prefix: %s, application namespace: %s, s3 region: %s, s3 bucket: %s, s3 root: %s", *apiGatewayPort, *apiGatewayUrlPrefix, *namespace, *apiGatewayS3Region, *apiGatewayS3Bucket, *apiGatewayS3Root)
 			config := server.Config{
 				Port: *apiGatewayPort,
 				UrlPrefix: *apiGatewayUrlPrefix,
 				UserName: *apiGatewayUserName,
 				UserPassword: *apiGatewayUserPassword,
 				SparkApplicationNamespace: *namespace,
+				S3Region: *apiGatewayS3Region,
+				S3Bucket: *apiGatewayS3Bucket,
+				S3Root: *apiGatewayS3Root,
 			}
 			server.Run(config)
 		}()
