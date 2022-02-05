@@ -99,6 +99,11 @@ func Run(config Config) {
 			handlers.GetSubmissionStatus(context, &apiConfig)
 		})
 
+	group.GET("/submissions/:id/log",
+		func(context *gin.Context) {
+			handlers.GetLog(context, &apiConfig)
+		})
+
 	group.DELETE("/submissions/:id",
 		func(context *gin.Context) {
 			handlers.DeleteSubmission(context, &apiConfig)
