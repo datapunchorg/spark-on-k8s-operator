@@ -17,6 +17,7 @@ limitations under the License.
 package cmd
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -27,6 +28,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type Client struct {
@@ -192,4 +194,54 @@ func (c *Client) GetApplicationStatus(submissionId string) (string, apigatewayv1
 	}
 
 	return responseStr, responseStruct, nil
+}
+
+func (c *Client) PrintApplicationLog(submissionId string, executorId int, followLogs bool) {
+	url := fmt.Sprintf("%s/submissions/%s/log", c.serverUrl, submissionId)
+
+	queryParameters := make([]string, 0, 5)
+	if executorId != -1 {
+		queryParameters = append(queryParameters, fmt.Sprintf("executor=%d", executorId))
+	}
+	if followLogs {
+		queryParameters = append(queryParameters, fmt.Sprintf("follow=true"))
+	}
+	if len(queryParameters) > 0 {
+		url += "?" + strings.Join(queryParameters, "&")
+	}
+
+	req, err := http.NewRequest(http.MethodGet, url, bytes.NewReader([]byte{}))
+	if err != nil {
+		log.Printf("Failed to create get request for %s: %s", url, err.Error())
+		return
+	}
+	req.SetBasicAuth(c.credential.Name, c.credential.Password)
+
+	response, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Printf("Failed to get %s: %s", url, err.Error())
+		return
+	}
+
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		log.Printf("Failed to get %s: %s", url, ErrorBadHttpStatus(url, response).Error())
+		return
+	}
+
+	reader := bufio.NewReader(response.Body)
+	for {
+		// TODO optimize reading here by reading in batches
+		if c, _, err := reader.ReadRune(); err != nil {
+			if err == io.EOF {
+				break
+			} else {
+				log.Printf("Failed to get log: %s", err.Error())
+				return
+			}
+		} else {
+			fmt.Printf("%s", string(c))
+		}
+	}
 }

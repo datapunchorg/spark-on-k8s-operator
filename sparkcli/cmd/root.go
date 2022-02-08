@@ -43,7 +43,7 @@ func init() {
 		"User name to connect to API gateway")
 	rootCmd.PersistentFlags().StringVarP(&Password, "password", "p", "",
 		"User password to connect to API gateway")
-	rootCmd.AddCommand(uploadCmd, submitCmd)
+	rootCmd.AddCommand(uploadCmd, submitCmd, statusCmd, logCommand)
 }
 
 func Execute() {

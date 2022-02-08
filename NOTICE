@@ -1,0 +1,9 @@
+This project is a fork from https://github.com/GoogleCloudPlatform/spark-on-k8s-operator.
+
+It contains files copied from https://github.com/GoogleCloudPlatform/spark-on-k8s-operator. Some files may be copied and modified from there.
+
+Following are the main changes this project adds on top of the original spark-on-k8s-operator project:
+
+1. Add an API Gateway (REST Service) to accept Spark application submission and other operations.
+
+2. Add a command line tool to submit Spark application to the API Gateway and do other related operations.
