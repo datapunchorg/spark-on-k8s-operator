@@ -245,3 +245,45 @@ func (c *Client) PrintApplicationLog(submissionId string, executorId int, follow
 		}
 	}
 }
+
+func (c *Client) DeleteApplication(submissionId string) (string, apigatewayv1.DeleteSubmissionResponse, error)  {
+	result := apigatewayv1.DeleteSubmissionResponse{}
+
+	url := fmt.Sprintf("%s/submissions/%s", c.serverUrl, submissionId)
+
+	req, err := http.NewRequest(http.MethodDelete, url, bytes.NewReader([]byte{}))
+	if err != nil {
+		return "", result,
+			fmt.Errorf("failed to create delete request for %s: %s", url, err.Error())
+	}
+	req.SetBasicAuth(c.credential.Name, c.credential.Password)
+
+	response, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", result,
+			fmt.Errorf("failed to get %s: %s", url, err.Error())
+	}
+
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return "", result, ErrorBadHttpStatus(url, response)
+	}
+
+	responseBytes, err := io.ReadAll(response.Body)
+	if err != nil {
+		return "", result,
+			fmt.Errorf("failed to read response data for %s: %s", url, err.Error())
+	}
+
+	responseStr := string(responseBytes)
+
+	responseStruct := apigatewayv1.DeleteSubmissionResponse{}
+	err = json.Unmarshal(responseBytes, &responseStruct)
+	if err != nil {
+		return responseStr, result,
+			fmt.Errorf("failed to parse response from %s: %s, response: %s", url, err.Error(), responseStr)
+	}
+
+	return responseStr, responseStruct, nil
+}
