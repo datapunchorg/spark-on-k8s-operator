@@ -17,6 +17,6 @@ limitations under the License.
 package cmd
 
 type UserCredential struct {
-	Name string
+	Name     string
 	Password string
 }

@@ -83,5 +83,3 @@ func createSparkApplicationClient() (crdclientset.Interface, error) {
 func getSparkApplicationClientForConfig(config *rest.Config) (crdclientset.Interface, error) {
 	return crdclientset.NewForConfig(config)
 }
-
-

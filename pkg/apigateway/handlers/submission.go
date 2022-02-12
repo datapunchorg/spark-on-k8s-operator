@@ -39,13 +39,13 @@ func PostSubmission(c *gin.Context, config *ApiConfig) {
 
 	if err := c.BindJSON(&request); err != nil {
 		msg := fmt.Sprintf("Bad json request: %s", err.Error())
-		writeErrorResponse(c,http.StatusBadRequest, msg, nil)
+		writeErrorResponse(c, http.StatusBadRequest, msg, nil)
 		return
 	}
 
 	crdClient, err := createSparkApplicationClient()
 	if err != nil {
-		writeErrorResponse(c,http.StatusInternalServerError, "", err)
+		writeErrorResponse(c, http.StatusInternalServerError, "", err)
 		return
 	}
 
@@ -55,7 +55,7 @@ func PostSubmission(c *gin.Context, config *ApiConfig) {
 	app := v1beta2.SparkApplication{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "sparkoperator.k8s.io/v1beta2",
-			Kind: "SparkApplication",
+			Kind:       "SparkApplication",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: config.SparkApplicationNamespace,
@@ -76,7 +76,7 @@ func PostSubmission(c *gin.Context, config *ApiConfig) {
 	err = createSparkApplication(config.SparkApplicationNamespace, &app, crdClient)
 	if err != nil {
 		msg := fmt.Sprintf("Failed to create SparkApplication: %s", err.Error())
-		writeErrorResponse(c,http.StatusInternalServerError, msg, nil)
+		writeErrorResponse(c, http.StatusInternalServerError, msg, nil)
 		return
 	}
 
@@ -92,7 +92,7 @@ func GetSubmissionStatus(c *gin.Context, config *ApiConfig) {
 
 	crdClient, err := createSparkApplicationClient()
 	if err != nil {
-		writeErrorResponse(c,http.StatusInternalServerError, "", err)
+		writeErrorResponse(c, http.StatusInternalServerError, "", err)
 		return
 	}
 
@@ -132,7 +132,7 @@ func GetLog(c *gin.Context, config *ApiConfig) {
 			follow, err = strconv.ParseBool(queryValue)
 			if err != nil {
 				msg := fmt.Sprintf("Invalid query parameter value for %s: %s. It should be true or false.", followQueryParamName, queryValue)
-				writeErrorResponse(c,http.StatusBadRequest, msg, nil)
+				writeErrorResponse(c, http.StatusBadRequest, msg, nil)
 				return
 			}
 		}
@@ -147,7 +147,7 @@ func GetLog(c *gin.Context, config *ApiConfig) {
 			executorId, err = strconv.Atoi(queryValue)
 			if err != nil {
 				msg := fmt.Sprintf("Invalid query parameter value for %s: %s. It should be a number.", executorQueryParamName, queryValue)
-				writeErrorResponse(c,http.StatusBadRequest, msg, nil)
+				writeErrorResponse(c, http.StatusBadRequest, msg, nil)
 				return
 			}
 		}
@@ -158,21 +158,21 @@ func GetLog(c *gin.Context, config *ApiConfig) {
 	kubeClient, err := getKubeClient(kubeConfig)
 	if err != nil {
 		msg := fmt.Sprintf("Failed to get Kubernetes client: %s", err.Error())
-		writeErrorResponse(c,http.StatusInternalServerError, msg, nil)
+		writeErrorResponse(c, http.StatusInternalServerError, msg, nil)
 		return
 	}
 
 	crdClient, err := getSparkApplicationClient(kubeConfig)
 	if err != nil {
 		msg := fmt.Sprintf("Failed to get SparkApplication client: %s", err.Error())
-		writeErrorResponse(c,http.StatusInternalServerError, msg, nil)
+		writeErrorResponse(c, http.StatusInternalServerError, msg, nil)
 		return
 	}
 
 	app, err := crdClient.SparkoperatorV1beta2().SparkApplications(config.SparkApplicationNamespace).Get(context.TODO(), id, metav1.GetOptions{})
 	if err != nil {
 		msg := fmt.Sprintf("Failed to get SparkApplication %s: %s", id, err.Error())
-		writeErrorResponse(c,http.StatusOK, msg, nil)
+		writeErrorResponse(c, http.StatusOK, msg, nil)
 		return
 	}
 
@@ -184,7 +184,7 @@ func GetLog(c *gin.Context, config *ApiConfig) {
 	}
 	if podName == "" {
 		msg := fmt.Sprintf("Unable to fetch log as the name of the pod for SparkApplication %s is empty", id)
-		writeErrorResponse(c,http.StatusOK, msg, nil)
+		writeErrorResponse(c, http.StatusOK, msg, nil)
 		return
 	}
 
@@ -194,12 +194,12 @@ func GetLog(c *gin.Context, config *ApiConfig) {
 	reader, err := request.Stream(context.TODO())
 	if err != nil {
 		msg := fmt.Sprintf("Failed to get log for %s: %v", podName, err.Error())
-		writeErrorResponse(c,http.StatusOK, msg, nil)
+		writeErrorResponse(c, http.StatusOK, msg, nil)
 		return
 	}
 	if reader == nil {
 		msg := fmt.Sprintf("Failed to get log for %s: pod not found", podName)
-		writeErrorResponse(c,http.StatusOK, msg, nil)
+		writeErrorResponse(c, http.StatusOK, msg, nil)
 		return
 	}
 
@@ -227,7 +227,7 @@ func DeleteSubmission(c *gin.Context, config *ApiConfig) {
 
 	crdClient, err := createSparkApplicationClient()
 	if err != nil {
-		writeErrorResponse(c,http.StatusInternalServerError, "", err)
+		writeErrorResponse(c, http.StatusInternalServerError, "", err)
 		return
 	}
 
@@ -240,7 +240,7 @@ func DeleteSubmission(c *gin.Context, config *ApiConfig) {
 
 	response := v1.DeleteSubmissionResponse{
 		SubmissionId: id,
-		Message: "Application deleted",
+		Message:      "Application deleted",
 	}
 
 	c.IndentedJSON(http.StatusOK, response)
@@ -272,4 +272,3 @@ func validateSpec(spec v1beta2.SparkApplicationSpec) error {
 
 	return nil
 }
-

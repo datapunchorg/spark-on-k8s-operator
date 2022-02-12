@@ -33,13 +33,13 @@ type UploadFileResponse struct {
 
 type SubmissionStatusResponse struct {
 	SubmissionId string `json:"submissionId"`
-	State string `json:"state"`
-	RecentAppId string `json:"recentAppId"`
+	State        string `json:"state"`
+	RecentAppId  string `json:"recentAppId"`
 }
 
 type DeleteSubmissionResponse struct {
 	SubmissionId string `json:"submissionId"`
-	Message string `json:"message"`
+	Message      string `json:"message"`
 }
 
 type Response struct {
@@ -52,6 +52,6 @@ type GetSparkApplicationsResponse struct {
 
 type SparkApplicationSummary struct {
 	SubmissionId string `json:"submissionId"`
-	State string `json:"state"`
-	RecentAppId string `json:"recentAppId"`
+	State        string `json:"state"`
+	RecentAppId  string `json:"recentAppId"`
 }

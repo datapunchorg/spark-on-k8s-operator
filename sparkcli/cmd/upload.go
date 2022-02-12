@@ -49,4 +49,3 @@ var uploadCmd = &cobra.Command{
 
 func init() {
 }
-

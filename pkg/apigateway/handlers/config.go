@@ -18,7 +18,7 @@ package handlers
 
 type ApiConfig struct {
 	SparkApplicationNamespace string `json:"sparkApplicationNamespace"`
-	S3Region string `json:"s3Region"`
-	S3Bucket string `json:"s3Bucket"`
-	S3Root string `json:"s3Root"`
+	S3Region                  string `json:"s3Region"`
+	S3Bucket                  string `json:"s3Bucket"`
+	S3Root                    string `json:"s3Root"`
 }

@@ -67,7 +67,7 @@ var submitCmd = &cobra.Command{
 				sparkConfMap[entry] = ""
 			} else {
 				key := entry[0:index]
-				value := entry[index + 1:]
+				value := entry[index+1:]
 				sparkConfMap[key] = value
 			}
 		}
@@ -89,26 +89,26 @@ var submitCmd = &cobra.Command{
 		}
 
 		request := apigatewayv1.SparkApplicationSubmissionRequest{
-			SparkApplicationSpec: v1beta2.SparkApplicationSpec {
-				Image: &Image,
-				SparkVersion: SparkVersion,
-				Type: v1beta2.SparkApplicationType(Type),
-				MainClass: mainClass,
+			SparkApplicationSpec: v1beta2.SparkApplicationSpec{
+				Image:               &Image,
+				SparkVersion:        SparkVersion,
+				Type:                v1beta2.SparkApplicationType(Type),
+				MainClass:           mainClass,
 				MainApplicationFile: &applicationFile,
-				Arguments: applicationArgs,
+				Arguments:           applicationArgs,
 				Driver: v1beta2.DriverSpec{
 					SparkPodSpec: v1beta2.SparkPodSpec{
 						ServiceAccount: &ServiceAccount,
-						Cores: &DriverCores,
-						Memory: &DriverMemory,
+						Cores:          &DriverCores,
+						Memory:         &DriverMemory,
 					},
 				},
 				Executor: v1beta2.ExecutorSpec{
 					Instances: &NumExecutors,
 					SparkPodSpec: v1beta2.SparkPodSpec{
 						ServiceAccount: &ServiceAccount,
-						Cores: &ExecutorCores,
-						Memory: &ExecutorMemory,
+						Cores:          &ExecutorCores,
+						Memory:         &ExecutorMemory,
 					},
 				},
 				SparkConf: sparkConfMap,
@@ -127,7 +127,7 @@ var submitCmd = &cobra.Command{
 		startTime := time.Now()
 		expireTime := startTime.Add(maxWaitHours * time.Hour)
 		applicationFinished := false
-		for time.Now().Before(expireTime)  {
+		for time.Now().Before(expireTime) {
 			// TODO add retry when getting status returns error
 			statusResponseStr, statusResponse, err := client.GetApplicationStatus(submissionId)
 			if err != nil {
@@ -148,6 +148,8 @@ var submitCmd = &cobra.Command{
 		if !applicationFinished {
 			log.Fatalf("Application %s not finished", submissionId)
 		}
+
+		log.Printf("You could check application log by running: sparkcli --user %s --password xxx-replace-with-real-password-xxx --insecure --url %s log %s", User, ServerUrl, submissionId)
 	},
 }
 
@@ -181,4 +183,3 @@ func init() {
 	// Make flag parsing stop after the first non-flag arg
 	submitCmd.Flags().SetInterspersed(false)
 }
-

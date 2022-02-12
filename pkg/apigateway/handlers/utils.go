@@ -23,7 +23,7 @@ import (
 	"github.com/golang/glog"
 )
 
-func writeErrorResponse(context *gin.Context, httpCode int, message string, err error)  {
+func writeErrorResponse(context *gin.Context, httpCode int, message string, err error) {
 	var str string
 	if message == "" && err == nil {
 		str = "Unknown Error"

@@ -32,7 +32,7 @@ import (
 )
 
 type Client struct {
-	serverUrl string
+	serverUrl  string
 	credential UserCredential
 }
 
@@ -40,13 +40,13 @@ func NewBasicAuthClient(serverUrl string, user string, password string) *Client 
 	return &Client{
 		serverUrl: serverUrl,
 		credential: UserCredential{
-			Name: user,
+			Name:     user,
 			Password: password,
 		},
 	}
 }
 
-func (c *Client) UploadFileToS3(filePath string) (string, error)  {
+func (c *Client) UploadFileToS3(filePath string) (string, error) {
 	file, err := os.Open(filePath)
 	defer file.Close()
 
@@ -102,7 +102,7 @@ func (c *Client) UploadFileToS3(filePath string) (string, error)  {
 	return responseStruct.Url, nil
 }
 
-func (c *Client) SubmitApplication(request apigatewayv1.SparkApplicationSubmissionRequest) (string, error)  {
+func (c *Client) SubmitApplication(request apigatewayv1.SparkApplicationSubmissionRequest) (string, error) {
 	url := fmt.Sprintf("%s/submissions", c.serverUrl)
 	requestBytes, err := json.Marshal(request)
 	if err != nil {
@@ -149,7 +149,7 @@ func (c *Client) SubmitApplication(request apigatewayv1.SparkApplicationSubmissi
 	return responseStruct.SubmissionId, nil
 }
 
-func (c *Client) GetApplicationStatus(submissionId string) (string, apigatewayv1.SubmissionStatusResponse, error)  {
+func (c *Client) GetApplicationStatus(submissionId string) (string, apigatewayv1.SubmissionStatusResponse, error) {
 	result := apigatewayv1.SubmissionStatusResponse{}
 
 	url := fmt.Sprintf("%s/submissions/%s/status", c.serverUrl, submissionId)
@@ -246,7 +246,7 @@ func (c *Client) PrintApplicationLog(submissionId string, executorId int, follow
 	}
 }
 
-func (c *Client) DeleteApplication(submissionId string) (string, apigatewayv1.DeleteSubmissionResponse, error)  {
+func (c *Client) DeleteApplication(submissionId string) (string, apigatewayv1.DeleteSubmissionResponse, error) {
 	result := apigatewayv1.DeleteSubmissionResponse{}
 
 	url := fmt.Sprintf("%s/submissions/%s", c.serverUrl, submissionId)

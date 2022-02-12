@@ -34,7 +34,7 @@ func UploadFile(c *gin.Context, s3Region string, s3Bucket string, s3Root string)
 	name, ok := c.GetQuery(nameQueryParamName)
 	if !ok || name == "" {
 		msg := fmt.Sprintf("Missing query string parameter: %s", nameQueryParamName)
-		writeErrorResponse(c,http.StatusBadRequest, msg, nil)
+		writeErrorResponse(c, http.StatusBadRequest, msg, nil)
 		return
 	}
 
@@ -47,7 +47,7 @@ func UploadFile(c *gin.Context, s3Region string, s3Bucket string, s3Root string)
 		})
 	if err != nil {
 		msg := fmt.Sprintf("Failed to create AWS session in region %s: %s", s3Region, err.Error())
-		writeErrorResponse(c,http.StatusInternalServerError, msg, nil)
+		writeErrorResponse(c, http.StatusInternalServerError, msg, nil)
 		return
 	}
 
@@ -56,13 +56,13 @@ func UploadFile(c *gin.Context, s3Region string, s3Bucket string, s3Root string)
 	uploader := s3manager.NewUploader(session)
 	_, err = uploader.Upload(&s3manager.UploadInput{
 		Bucket: aws.String(s3Bucket),
-		Key: aws.String(key),
-		Body: c.Request.Body,
+		Key:    aws.String(key),
+		Body:   c.Request.Body,
 	})
 
 	if err != nil {
 		msg := fmt.Sprintf("Failed to upload to s3, bucket: %s, key: %s, error: %s", s3Bucket, key, err.Error())
-		writeErrorResponse(c,http.StatusInternalServerError, msg, nil)
+		writeErrorResponse(c, http.StatusInternalServerError, msg, nil)
 		return
 	}
 

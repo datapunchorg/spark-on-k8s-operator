@@ -17,18 +17,18 @@ limitations under the License.
 package server
 
 const (
-	DefaultS3Region = "us-west-1"
+	DefaultS3Region  = "us-west-1"
 	DefaultUrlPrefix = "/sparkapi"
-	DefaultS3Root = "api-gateway-root"
+	DefaultS3Root    = "api-gateway-root"
 )
 
 type Config struct {
-	Port int
-	UrlPrefix string
-	UserName string
-	UserPassword string
+	Port                      int
+	UrlPrefix                 string
+	UserName                  string
+	UserPassword              string
 	SparkApplicationNamespace string
-	S3Region string
-	S3Bucket string
-	S3Root string
+	S3Region                  string
+	S3Bucket                  string
+	S3Root                    string
 }

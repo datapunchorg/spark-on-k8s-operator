@@ -50,9 +50,9 @@ func Run(config Config) {
 
 	apiConfig := handlers.ApiConfig{
 		SparkApplicationNamespace: config.SparkApplicationNamespace,
-		S3Region: s3Region,
-		S3Bucket: s3Bucket,
-		S3Root: s3Root,
+		S3Region:                  s3Region,
+		S3Bucket:                  s3Bucket,
+		S3Root:                    s3Root,
 	}
 
 	router.GET("/", handlers.HealthCheck)
@@ -74,8 +74,8 @@ func Run(config Config) {
 		if userPassword == "" {
 			userPassword = uuid.New().String()
 			glog.Infof(
-				"******************************\n" +
-					"API gateway is set to require %s as user name, but empty value as user password. Generated value %s as required password.\n" +
+				"******************************\n"+
+					"API gateway is set to require %s as user name, but empty value as user password. Generated value %s as required password.\n"+
 					"******************************",
 				userName, userPassword)
 		}
@@ -113,4 +113,3 @@ func Run(config Config) {
 
 	router.Run(fmt.Sprintf(":%d", port))
 }
-
