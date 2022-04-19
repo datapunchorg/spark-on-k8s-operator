@@ -35,5 +35,5 @@ jobs:
       - name: Publish the Docker image for Spark History Server
         run: |
           suffix=$(date +%s)
-          docker build -t ghcr.io/datapunchorg/spark:spark-history-server-3.2-$suffix spark-history-server
-          docker push ghcr.io/datapunchorg/spark:spark-history-server-3.2-$suffix
+          docker build -t ghcr.io/datapunchorg/spark-on-k8s-operator:spark-history-server-3.2-$suffix spark-history-server
+          docker push ghcr.io/datapunchorg/spark-on-k8s-operator:spark-history-server-3.2-$suffix
