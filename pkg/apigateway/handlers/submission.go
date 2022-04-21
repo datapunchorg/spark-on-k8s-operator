@@ -71,6 +71,8 @@ func PostSubmission(c *gin.Context, config *ApiConfig) {
 
 	sparkConf["spark.kubernetes.executor.podNamePrefix"] = submissionId
 
+	addMissingKeysInStringMap(sparkConf, config.SubmissionConfig.SparkConf)
+
 	app.Spec.SparkConf = sparkConf
 
 	err = createSparkApplication(config.SparkApplicationNamespace, &app, crdClient)

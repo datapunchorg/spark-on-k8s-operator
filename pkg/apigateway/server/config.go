@@ -16,6 +16,8 @@ limitations under the License.
 
 package server
 
+import "github.com/GoogleCloudPlatform/spark-on-k8s-operator/pkg/apigateway/handlers"
+
 const (
 	DefaultS3Region  = "us-west-1"
 	DefaultUrlPrefix = "/sparkapi"
@@ -31,4 +33,10 @@ type Config struct {
 	S3Region                  string
 	S3Bucket                  string
 	S3Root                    string
+	ConfigFile                string
+}
+
+// ExtraConfig contains content for Config.ConfigFile
+type ExtraConfig struct {
+	SubmissionConfig   handlers.ApplicationSubmissionConfig `json:"submissionConfig"`
 }

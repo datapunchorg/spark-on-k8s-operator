@@ -21,4 +21,9 @@ type ApiConfig struct {
 	S3Region                  string `json:"s3Region"`
 	S3Bucket                  string `json:"s3Bucket"`
 	S3Root                    string `json:"s3Root"`
+	SubmissionConfig          ApplicationSubmissionConfig `json:"submissionConfig"`
+}
+
+type ApplicationSubmissionConfig struct {
+	SparkConf map[string]string `json:"sparkConf,omitempty"`
 }

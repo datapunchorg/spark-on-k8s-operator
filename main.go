@@ -83,6 +83,7 @@ var (
 	apiGatewayS3Region             = flag.String("api-gateway-s3-region", "", "S3 AWS region for API gateway REST server to upload file.")
 	apiGatewayS3Bucket             = flag.String("api-gateway-s3-bucket", "", "S3 bucket for API gateway REST server to upload file.")
 	apiGatewayS3Root               = flag.String("api-gateway-s3-root", server.DefaultS3Root, "S3 root folder for API gateway REST server to upload file.")
+	apiGatewayConfig               = flag.String("api-gateway-config", "", "Config file for API gateway REST server to provide extra settings.")
 )
 
 func main() {
@@ -250,6 +251,7 @@ func main() {
 				S3Region: *apiGatewayS3Region,
 				S3Bucket: *apiGatewayS3Bucket,
 				S3Root: *apiGatewayS3Root,
+				ConfigFile: *apiGatewayConfig,
 			}
 			server.Run(config)
 		}()

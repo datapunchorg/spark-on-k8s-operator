@@ -22,6 +22,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang/glog"
 	"github.com/google/uuid"
+	"k8s.io/apimachinery/pkg/util/yaml"
+	"os"
 )
 
 func Run(config Config) {
@@ -44,6 +46,23 @@ func Run(config Config) {
 
 	s3Root := config.S3Root
 
+	extraConfig := ExtraConfig{}
+	if config.ConfigFile != "" {
+		file, err := os.Open(config.ConfigFile)
+		if err != nil {
+			glog.Warningf("Failed to open config file %s: %s", config.ConfigFile, err.Error())
+		} else {
+			defer file.Close()
+			decoder := yaml.NewYAMLOrJSONDecoder(file, 200)
+			err = decoder.Decode(&extraConfig)
+			if err != nil {
+				glog.Warningf("Failed to parse config file %s: %s", config.ConfigFile, err.Error())
+			} else {
+				glog.Infof("Loaded config from %s", config.ConfigFile)
+			}
+		}
+	}
+
 	glog.Infof("Running API gateway for Spark application namespace %s", config.SparkApplicationNamespace)
 
 	router := gin.Default()
@@ -53,6 +72,7 @@ func Run(config Config) {
 		S3Region:                  s3Region,
 		S3Bucket:                  s3Bucket,
 		S3Root:                    s3Root,
+		SubmissionConfig:          extraConfig.SubmissionConfig,
 	}
 
 	router.GET("/", handlers.HealthCheck)

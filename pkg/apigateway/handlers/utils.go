@@ -40,3 +40,11 @@ func writeErrorResponse(context *gin.Context, httpCode int, message string, err 
 			Message: str,
 		})
 }
+
+func addMissingKeysInStringMap(to map[string]string, from map[string]string) {
+	for k, v := range from {
+		if _, ok := to[k]; !ok {
+			to[k] = v
+		}
+	}
+}

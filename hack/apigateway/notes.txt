@@ -1,0 +1,2 @@
+Command example to start Spark Operator on local:
+xxx --kubeConfig /Users/xxx/.kube/config --api-gateway-port 8080 --api-gateway-s3-bucket bucket1 --api-gateway-config  hack/apigateway/serverConfig.yml
