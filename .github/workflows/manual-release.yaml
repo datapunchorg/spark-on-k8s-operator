@@ -41,6 +41,9 @@ jobs:
         uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=sha
 
       # note: may also use docker build . --file Dockerfile --tag my-image-name:$(date +%s)
       - name: Build and push Docker image
