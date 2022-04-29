@@ -34,6 +34,7 @@ type UploadFileResponse struct {
 type SubmissionStatusResponse struct {
 	SubmissionId string `json:"submissionId"`
 	State        string `json:"state"`
+	ApplicationMessage string  `json:"applicationMessage"`
 	RecentAppId  string `json:"recentAppId"`
 }
 

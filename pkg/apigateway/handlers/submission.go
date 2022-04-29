@@ -110,11 +110,14 @@ func GetSubmissionStatus(c *gin.Context, config *ApiConfig) {
 		state = app.Status.AppState.State
 	}
 
+	applicationMessage := app.Status.AppState.ErrorMessage
+
 	appId := app.Status.SparkApplicationID
 
 	response := v1.SubmissionStatusResponse{
 		SubmissionId: id,
 		State:        string(state),
+		ApplicationMessage: applicationMessage,
 		RecentAppId:  appId,
 	}
 
