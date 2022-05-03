@@ -30,7 +30,6 @@ import (
 var Image string
 var SparkVersion string
 var Type string
-var ServiceAccount string
 var DriverCores int32
 var DriverMemory string
 var NumExecutors int32
@@ -98,7 +97,6 @@ var submitCmd = &cobra.Command{
 				Arguments:           applicationArgs,
 				Driver: v1beta2.DriverSpec{
 					SparkPodSpec: v1beta2.SparkPodSpec{
-						ServiceAccount: &ServiceAccount,
 						Cores:          &DriverCores,
 						Memory:         &DriverMemory,
 					},
@@ -106,7 +104,6 @@ var submitCmd = &cobra.Command{
 				Executor: v1beta2.ExecutorSpec{
 					Instances: &NumExecutors,
 					SparkPodSpec: v1beta2.SparkPodSpec{
-						ServiceAccount: &ServiceAccount,
 						Cores:          &ExecutorCores,
 						Memory:         &ExecutorMemory,
 					},
@@ -161,8 +158,6 @@ func init() {
 		"the name of the Spark image")
 	submitCmd.Flags().StringVarP(&SparkVersion, "spark-version", "", "",
 		"the Spark version")
-	submitCmd.Flags().StringVarP(&ServiceAccount, "service-account", "", "spark",
-		"the Spark service account")
 	submitCmd.Flags().StringVarP(&Type, "type", "", "",
 		"the application type")
 	submitCmd.Flags().StringArrayVarP(&SparkConf, "conf", "", []string{},

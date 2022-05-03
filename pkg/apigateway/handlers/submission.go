@@ -64,6 +64,16 @@ func PostSubmission(c *gin.Context, config *ApiConfig) {
 		Spec: request.SparkApplicationSpec,
 	}
 
+	serviceAccount := config.SubmissionConfig.ServiceAccount
+	if serviceAccount == "" {
+		msg := fmt.Sprintf("Cannot submis Spark application due to empty service account in server side config")
+		writeErrorResponse(c, http.StatusInternalServerError, msg, nil)
+		return
+	}
+
+	app.Spec.Driver.ServiceAccount = &serviceAccount
+	app.Spec.Executor.ServiceAccount = &serviceAccount
+
 	sparkVersion := request.SparkVersion
 	if sparkVersion == "" {
 		sparkVersion = config.SubmissionConfig.DefaultSparkVersion
