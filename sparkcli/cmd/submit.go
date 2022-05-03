@@ -157,13 +157,13 @@ func init() {
 	submitCmd.Flags().StringVarP(&Class, "class", "", "",
 		"the main class of the Spark application")
 
-	submitCmd.Flags().StringVarP(&Image, "image", "", "gcr.io/spark-operator/spark:v3.1.1",
+	submitCmd.Flags().StringVarP(&Image, "image", "", "",
 		"the name of the Spark image")
-	submitCmd.Flags().StringVarP(&SparkVersion, "spark-version", "", "3.1.1",
+	submitCmd.Flags().StringVarP(&SparkVersion, "spark-version", "", "",
 		"the Spark version")
 	submitCmd.Flags().StringVarP(&ServiceAccount, "service-account", "", "spark",
 		"the Spark service account")
-	submitCmd.Flags().StringVarP(&Type, "type", "", "Java",
+	submitCmd.Flags().StringVarP(&Type, "type", "", "",
 		"the application type")
 	submitCmd.Flags().StringArrayVarP(&SparkConf, "conf", "", []string{},
 		"Spark config")

@@ -21,6 +21,7 @@ import (
 	v1 "github.com/GoogleCloudPlatform/spark-on-k8s-operator/pkg/apigateway/apis/v1"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/glog"
+	"strings"
 )
 
 func writeErrorResponse(context *gin.Context, httpCode int, message string, err error) {
@@ -47,4 +48,13 @@ func addMissingKeysInStringMap(to map[string]string, from map[string]string) {
 			to[k] = v
 		}
 	}
+}
+
+func findSparkImageName(sparkImageConfigs []SparkImageConfig, sparkVersion string, sparkType string) (string, bool){
+	for _, entry := range sparkImageConfigs {
+		if strings.EqualFold(entry.Version, sparkVersion) && strings.EqualFold(entry.Type, sparkType) {
+			return entry.Image, true
+		}
+	}
+	return "", false
 }

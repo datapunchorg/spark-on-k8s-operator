@@ -64,6 +64,55 @@ func PostSubmission(c *gin.Context, config *ApiConfig) {
 		Spec: request.SparkApplicationSpec,
 	}
 
+	sparkVersion := request.SparkVersion
+	if sparkVersion == "" {
+		sparkVersion = config.SubmissionConfig.DefaultSparkVersion
+		glog.Infof("Add Spark version %s for submission %s", sparkVersion, submissionId)
+		app.Spec.SparkVersion = sparkVersion
+	}
+
+	if app.Spec.SparkVersion == "" {
+		msg := fmt.Sprintf("Cannot submis Spark application due to empty Spark version")
+		writeErrorResponse(c, http.StatusBadRequest, msg, nil)
+		return
+	}
+
+	sparkType := request.Type
+	if sparkType == "" {
+		if request.MainClass != nil && *request.MainClass != "" {
+			sparkType = v1beta2.JavaApplicationType
+		} else {
+			sparkType = v1beta2.PythonApplicationType
+		}
+		glog.Infof("Add type %s for submission %s", sparkType, submissionId)
+		app.Spec.Type = sparkType
+	}
+
+	if app.Spec.Type == "" {
+		msg := fmt.Sprintf("Cannot submis Spark application due to empty Spark application type")
+		writeErrorResponse(c, http.StatusBadRequest, msg, nil)
+		return
+	}
+
+	sparkImage := request.Image
+	if sparkImage == nil || *sparkImage == "" {
+		foundSparkImage, ok := findSparkImageName(config.SubmissionConfig.SparkImages, sparkVersion, string(sparkType))
+		if ok {
+			glog.Infof("Add image %s for submission %s", foundSparkImage, submissionId)
+			app.Spec.Image = &foundSparkImage
+		} else {
+			msg := fmt.Sprintf("Cannot find Spark image for Spark %s and %s", sparkVersion, sparkType)
+			writeErrorResponse(c, http.StatusBadRequest, msg, nil)
+			return
+		}
+	}
+
+	if app.Spec.Image == nil || *app.Spec.Image == "" {
+		msg := fmt.Sprintf("Cannot submis Spark application due to empty Spark image")
+		writeErrorResponse(c, http.StatusBadRequest, msg, nil)
+		return
+	}
+
 	sparkConf := app.Spec.SparkConf
 	if sparkConf == nil {
 		sparkConf = map[string]string{}

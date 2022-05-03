@@ -45,3 +45,19 @@ func Test_addMissingKeysInStringMap(t *testing.T) {
 	assert.Equal(t, "value2", map1["key2"])
 	assert.Equal(t, "value33", map1["key3"])
 }
+
+func Test_findSparkImageName(t *testing.T) {
+	config := []SparkImageConfig {
+		{Version: "3.1", Type: "java", Image: "image1"},
+		{Version: "3.2", Type: "Python", Image: "image2"},
+	}
+	foundImage, ok := findSparkImageName(config, "3.0", "java")
+	assert.Equal(t, "", foundImage)
+	assert.Equal(t, false, ok)
+	foundImage, ok = findSparkImageName(config, "3.1", "java")
+	assert.Equal(t, "image1", foundImage)
+	assert.Equal(t, true, ok)
+	foundImage, ok = findSparkImageName(config, "3.2", "python")
+	assert.Equal(t, "image2", foundImage)
+	assert.Equal(t, true, ok)
+}

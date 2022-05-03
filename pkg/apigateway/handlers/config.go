@@ -25,5 +25,13 @@ type ApiConfig struct {
 }
 
 type ApplicationSubmissionConfig struct {
+	SparkImages []SparkImageConfig `json:"sparkImages,omitempty"`
+	DefaultSparkVersion string `json:"defaultSparkVersion,omitempty"`
 	SparkConf map[string]string `json:"sparkConf,omitempty"`
+}
+
+type SparkImageConfig struct {
+	Version string `json:"version,omitempty"`
+	Type string `json:"type,omitempty"`
+	Image string `json:"image,omitempty"`
 }
