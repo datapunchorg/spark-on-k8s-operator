@@ -27,6 +27,8 @@ import (
 	"time"
 )
 
+var SparkWaitAppCompletion = "spark.kubernetes.submission.waitAppCompletion"
+
 var Image string
 var SparkVersion string
 var Type string
@@ -119,31 +121,33 @@ var submitCmd = &cobra.Command{
 
 		log.Printf("Submitted application, submission id: %s", submissionId)
 
-		maxWaitHours := 24 * time.Hour
-		sleepInterval := 10 * time.Second
-		startTime := time.Now()
-		expireTime := startTime.Add(maxWaitHours * time.Hour)
-		applicationFinished := false
-		for time.Now().Before(expireTime) {
-			// TODO add retry when getting status returns error
-			statusResponseStr, statusResponse, err := client.GetApplicationStatus(submissionId)
-			if err != nil {
-				log.Fatalf("Failed to get status for application %s: %s", submissionId, err.Error())
+		if waitAppCompletion(sparkConfMap) {
+			maxWaitHours := 24 * time.Hour
+			sleepInterval := 10 * time.Second
+			startTime := time.Now()
+			expireTime := startTime.Add(maxWaitHours * time.Hour)
+			applicationFinished := false
+			for time.Now().Before(expireTime) {
+				// TODO add retry when getting status returns error
+				statusResponseStr, statusResponse, err := client.GetApplicationStatus(submissionId)
+				if err != nil {
+					log.Fatalf("Failed to get status for application %s: %s", submissionId, err.Error())
+				}
+				state := statusResponse.State
+				if state == "COMPLETED" || state == "FAILED" || state == "SUBMISSION_FAILED" {
+					log.Printf("Application %s finished: %s", submissionId, statusResponseStr)
+					applicationFinished = true
+					break
+				} else {
+					str := fmt.Sprintf("Waiting until application %s finished (current state: %s)", submissionId, state)
+					log.Printf(str)
+					time.Sleep(sleepInterval)
+				}
 			}
-			state := statusResponse.State
-			if state == "COMPLETED" || state == "FAILED" || state == "SUBMISSION_FAILED" {
-				log.Printf("Application %s finished: %s", submissionId, statusResponseStr)
-				applicationFinished = true
-				break
-			} else {
-				str := fmt.Sprintf("Waiting until application %s finished (current state: %s)", submissionId, state)
-				log.Printf(str)
-				time.Sleep(sleepInterval)
-			}
-		}
 
-		if !applicationFinished {
-			log.Fatalf("Application %s not finished", submissionId)
+			if !applicationFinished {
+				log.Fatalf("Application %s not finished", submissionId)
+			}
 		}
 
 		log.Printf("You could check application log by running: sparkcli --user %s --password xxx-replace-with-real-password-xxx --insecure --url %s log %s", User, ServerUrl, submissionId)
@@ -177,4 +181,14 @@ func init() {
 
 	// Make flag parsing stop after the first non-flag arg
 	submitCmd.Flags().SetInterspersed(false)
+}
+
+func waitAppCompletion(sparkConf map[string]string) bool {
+	value, ok := sparkConf[SparkWaitAppCompletion]
+	// default value
+	wait := true
+	if ok {
+		wait = !strings.EqualFold(value, "false")
+	}
+	return wait
 }
