@@ -19,6 +19,7 @@ package sparkapplication
 import (
 	"context"
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"net/url"
 	"reflect"
 	"testing"
@@ -571,6 +572,64 @@ func TestCreateSparkUIIngress(t *testing.T) {
 	for _, test := range testcases {
 		testFn(test, t, "ingress.clusterName.com/{{$appNamespace}}/{{$appName}}")
 	}
+}
+
+func Test_getUIExtraPorts(t *testing.T) {
+	app1 := &v1beta2.SparkApplication{
+		Spec: v1beta2.SparkApplicationSpec{
+			SparkConf: map[string]string{},
+		},
+	}
+	ports, err := getUIExtraPorts(app1)
+	assert.Nil(t, ports)
+	assert.Nil(t, err)
+
+	app1.Spec.SparkConf["spark.ui.extra.ports"] = "123,456"
+	ports, err = getUIExtraPorts(app1)
+	assert.NotNil(t, ports)
+	assert.Equal(t, []int32{123, 456}, ports)
+	assert.Nil(t, err)
+
+	app1.Spec.SparkConf["spark.ui.extra.ports"] = "123,a456"
+	ports, err = getUIExtraPorts(app1)
+	assert.Nil(t, ports)
+	assert.NotNil(t, err)
+}
+
+func Test_createSparkUIService_uiExtraPorts(t *testing.T)  {
+	app := &v1beta2.SparkApplication{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "foo1",
+			Namespace: "default",
+			UID:       "foo-123",
+		},
+		Spec: v1beta2.SparkApplicationSpec{
+			SparkConf: map[string]string{
+				sparkUIExtraPortsConfigurationKey: "123",
+			},
+		},
+	}
+	fakeClient := fake.NewSimpleClientset()
+	sparkService, err := createSparkUIService(app, fakeClient)
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(sparkService.serviceObject.Spec.Ports))
+	assert.Equal(t, int32(4040), sparkService.serviceObject.Spec.Ports[0].Port)
+	assert.Equal(t, "p123", sparkService.serviceObject.Spec.Ports[1].Name)
+	assert.Equal(t, int32(123), sparkService.serviceObject.Spec.Ports[1].Port)
+	assert.Equal(t, int32(123), sparkService.serviceObject.Spec.Ports[1].TargetPort.IntVal)
+
+	app.Name = "another_name"
+	app.Spec.SparkConf[sparkUIExtraPortsConfigurationKey] = "123,456"
+	sparkService, err = createSparkUIService(app, fakeClient)
+	assert.Nil(t, err)
+	assert.Equal(t, 3, len(sparkService.serviceObject.Spec.Ports))
+	assert.Equal(t, int32(4040), sparkService.serviceObject.Spec.Ports[0].Port)
+	assert.Equal(t, "p123", sparkService.serviceObject.Spec.Ports[1].Name)
+	assert.Equal(t, int32(123), sparkService.serviceObject.Spec.Ports[1].Port)
+	assert.Equal(t, int32(123), sparkService.serviceObject.Spec.Ports[1].TargetPort.IntVal)
+	assert.Equal(t, "p456", sparkService.serviceObject.Spec.Ports[2].Name)
+	assert.Equal(t, int32(456), sparkService.serviceObject.Spec.Ports[2].Port)
+	assert.Equal(t, int32(456), sparkService.serviceObject.Spec.Ports[2].TargetPort.IntVal)
 }
 
 func parseURLAndAssertError(testURL string, t *testing.T) *url.URL {

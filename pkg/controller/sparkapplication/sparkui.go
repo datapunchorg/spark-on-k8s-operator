@@ -22,6 +22,7 @@ import (
 	"net/url"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/golang/glog"
 
@@ -39,6 +40,7 @@ import (
 
 const (
 	sparkUIPortConfigurationKey        = "spark.ui.port"
+	sparkUIExtraPortsConfigurationKey        = "spark.ui.extra.ports"
 	defaultSparkWebUIPort       int32  = 4040
 	defaultSparkWebUIPortName   string = "spark-driver-ui-port"
 )
@@ -64,6 +66,7 @@ func getSparkUIingressURL(ingressURLFormat string, appName string, appNamespace 
 
 // SparkService encapsulates information about the driver UI service.
 type SparkService struct {
+	serviceObject      *apiv1.Service
 	serviceName        string
 	serviceType        apiv1.ServiceType
 	servicePort        int32
@@ -274,6 +277,24 @@ func createSparkUIService(
 		},
 	}
 
+	extraPorts, err := getUIExtraPorts(app)
+	if err != nil {
+		glog.Warningf("Failed to create Spark UI extra ports for application %s: %s", app.Name, err.Error())
+	} else if len(extraPorts) > 0{
+		for _, port := range extraPorts {
+			serviceSpecPort := apiv1.ServicePort{
+				Name: fmt.Sprintf("p%d", port),
+				Port: port,
+				TargetPort: intstr.IntOrString{
+					Type:   intstr.Int,
+					IntVal: port,
+				},
+			}
+			service.Spec.Ports = append(service.Spec.Ports, serviceSpecPort)
+			glog.Infof("Added Spark UI extra port to service %s for application %s", service.Name, app.Name)
+		}
+	}
+
 	serviceAnnotations := getServiceAnnotations(app)
 	if len(serviceAnnotations) != 0 {
 		service.ObjectMeta.Annotations = serviceAnnotations
@@ -286,6 +307,7 @@ func createSparkUIService(
 	}
 
 	return &SparkService{
+		serviceObject:      service,
 		serviceName:        service.Name,
 		serviceType:        service.Spec.Type,
 		servicePort:        service.Spec.Ports[0].Port,
@@ -328,4 +350,21 @@ func getUIServicePortName(app *v1beta2.SparkApplication) string {
 		return *portName
 	}
 	return defaultSparkWebUIPortName
+}
+
+// getUIExtraPorts attempts to get the Spark web UI port from configuration property spark.ui.extra.ports
+func getUIExtraPorts(app *v1beta2.SparkApplication) ([]int32, error) {
+	portsStr, ok := app.Spec.SparkConf[sparkUIExtraPortsConfigurationKey]
+	if ok {
+		ports := make([]int32, 0, 10)
+		for _, str := range strings.Split(portsStr, ",") {
+			port, err := strconv.Atoi(str)
+			if err != nil {
+				return nil, fmt.Errorf("invalid value %s from Spark conf %s: %s", portsStr, sparkUIExtraPortsConfigurationKey, err.Error())
+			}
+			ports = append(ports, int32(port))
+		}
+		return ports, nil
+	}
+	return nil, nil
 }
