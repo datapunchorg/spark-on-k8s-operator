@@ -1,4 +1,5 @@
 
 20220510 support extra ports in Spark UI service
+https://github.com/datapunchorg/spark-on-k8s-operator/commit/5677a5e3b9a2c3fac40640a1eb6f98f5bb2d6ba8
 
 20220418 spark-history-server, pkg/apigateway, main.go, sparkcli
