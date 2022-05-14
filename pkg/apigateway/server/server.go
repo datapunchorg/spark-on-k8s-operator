@@ -129,6 +129,11 @@ func Run(config Config) {
 			handlers.DeleteSubmission(context, &apiConfig)
 		})
 
+	group.GET("/sparkui/:id",
+		func(context *gin.Context) {
+			handlers.ServeSparkUI(context, &apiConfig)
+		})
+
 	group.GET("/health", handlers.HealthCheck)
 
 	router.Run(fmt.Sprintf(":%d", port))
