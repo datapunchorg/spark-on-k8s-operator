@@ -1,0 +1,28 @@
+apiVersion: "sparkoperator.k8s.io/v1beta2"
+kind: SparkApplication
+metadata:
+  name: spark-example-01
+  namespace: spark-01
+spec:
+  type: Java
+  image: "ghcr.io/datapunchorg/spark:spark-3.2.1-1643336295"
+  mainClass: org.datapunch.sparkapp.Sleep
+  mainApplicationFile: "s3a://datapunch-public-01/sparkapp/sparkapp-1.0.5.jar"
+  arguments: ["--sleep", "10000000"]
+  sparkVersion: "3.2"
+  restartPolicy:
+    type: Never
+  driver:
+    cores: 1
+    memory: "512m"
+    serviceAccount: spark
+  executor:
+    cores: 1
+    instances: 1
+    memory: "512m"
+#  sparkConf:
+#    spark.ui.proxyBase: /foo
+
+# kubectl logs spark-example-01-driver -n spark-01
+# kubectl get sparkapp spark-example-01 -n spark-01 -o yaml
+# kubectl port-forward service/spark-example-01-ui-svc -n spark-01 4040:4040
