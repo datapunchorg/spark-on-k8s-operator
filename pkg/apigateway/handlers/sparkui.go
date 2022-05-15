@@ -52,8 +52,9 @@ func ServeSparkUI(c *gin.Context, config *ApiConfig, uiRootPath string) {
 }
 
 func newReverseProxy(submissionId string, appNamespace string, targetPath string, proxyBasePath string) (*httputil.ReverseProxy, error) {
-	//urlStr := fmt.Sprintf("http://%s-ui-svc.%s.svc.cluster.local:4040/", submissionId, appNamespace)
+	//urlStr := fmt.Sprintf("http://%s-ui-svc.%s.svc.cluster.local:4040", submissionId, appNamespace)
 	urlStr := "http://localhost:4040"
+	log.Printf("Creating revers proxy for Spark UI url %s", urlStr)
 	if targetPath != "" {
 		if !strings.HasPrefix(targetPath, "/") {
 			targetPath = "/" + targetPath
@@ -99,6 +100,22 @@ func newReverseProxy(submissionId string, appNamespace string, targetPath string
 				resp.Header[headerName] = newValues
 			}
 		}
+		/* else {
+			b, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				return  err
+			}
+			err = resp.Body.Close()
+			if err != nil {
+				return err
+			}
+			b = bytes.Replace(b, []byte("setUIRoot('')"), []byte("setUIRoot('')"), -1)
+			body := ioutil.NopCloser(bytes.NewReader(b))
+			resp.Body = body
+			resp.ContentLength = int64(len(b))
+			resp.Header.Set("Content-Length", strconv.Itoa(len(b)))
+			return nil
+		} */
 		return nil
 	}
 	return &httputil.ReverseProxy{
