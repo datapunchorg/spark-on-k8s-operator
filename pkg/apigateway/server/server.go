@@ -26,6 +26,10 @@ import (
 	"os"
 )
 
+func getV1ApiRootPath(urlPrefix string) string {
+	return fmt.Sprintf("%s/v1", urlPrefix)
+}
+
 func Run(config Config) {
 	port := config.Port
 
@@ -70,7 +74,7 @@ func Run(config Config) {
 	apiConfig := handlers.ApiConfig{
 		SparkApplicationNamespace: config.SparkApplicationNamespace,
 		SparkUIServiceUrlFormat:   config.SparkUIServiceUrlFormat,
-		SparkUIBaseProxyPrefix:    fmt.Sprintf("/%s/v1/sparkui", config.UrlPrefix),
+		SparkUIBaseProxyPrefix:    fmt.Sprintf("%s/sparkui", getV1ApiRootPath(config.UrlPrefix)),
 		S3Region:                  s3Region,
 		S3Bucket:                  s3Bucket,
 		S3Root:                    s3Root,
@@ -85,7 +89,7 @@ func Run(config Config) {
 
 	userName := config.UserName
 
-	apiRootPath := fmt.Sprintf("%s/v1", urlPrefix)
+	apiRootPath := getV1ApiRootPath(config.UrlPrefix)
 
 	var group *gin.RouterGroup
 	if userName == "" {
