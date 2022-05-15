@@ -35,6 +35,7 @@ type SubmissionStatusResponse struct {
 	SubmissionId string `json:"submissionId"`
 	State        string `json:"state"`
 	ApplicationMessage string  `json:"applicationMessage"`
+	SparkUI      string  `json:"sparkUI"`
 	RecentAppId  string `json:"recentAppId"`
 }
 

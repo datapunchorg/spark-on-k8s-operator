@@ -181,6 +181,21 @@ func GetSubmissionStatus(c *gin.Context, config *ApiConfig) {
 		RecentAppId:  appId,
 	}
 
+	// TODO return spark history UI url for completed application
+	if response.State == "RUNNING" {
+		// Example urls for status and spark ui:
+		// http://a5aa5b8a98ebc4c5bb247b2ed762c2fe-1896699602.us-west-1.elb.amazonaws.com/sparkapi/v1/submissions/app-8df31ec2a9a44a269b78a859ee05ecaf/status
+		// http://a5aa5b8a98ebc4c5bb247b2ed762c2fe-1896699602.us-west-1.elb.amazonaws.com/sparkapi/v1/sparkui/app-8df31ec2a9a44a269b78a859ee05ecaf
+		requestUrl := c.Request.URL
+		path, err := trimStatusUrlFromSubmissions(requestUrl.Path)
+		if err != nil {
+			glog.Warningf("Got invalid status endpoint url %s in request: %s", requestUrl, err.Error())
+		} else {
+			requestUrl.Path = fmt.Sprintf("%s/sparkui/%s", path, id)
+			response.SparkUI = requestUrl.String()
+		}
+	}
+
 	c.IndentedJSON(http.StatusOK, response)
 }
 

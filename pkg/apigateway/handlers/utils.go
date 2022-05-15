@@ -58,3 +58,14 @@ func findSparkImageName(sparkImageConfigs []SparkImageConfig, sparkVersion strin
 	}
 	return "", false
 }
+
+func trimStatusUrlFromSubmissions(url string) (string, error) {
+	urlParts := strings.Split(url, "/")
+	if !strings.EqualFold(urlParts[len(urlParts) - 1], "status") {
+		return "", fmt.Errorf("invalid status url (not ending with status): %s", url)
+	}
+	if len(urlParts) <= 3 {
+		return "", fmt.Errorf("invalid status url (not ending with /submissions/id/status): %s", url)
+	}
+	return strings.Join(urlParts[0:len(urlParts)-3], "/"), nil
+}

@@ -61,3 +61,13 @@ func Test_findSparkImageName(t *testing.T) {
 	assert.Equal(t, "image2", foundImage)
 	assert.Equal(t, true, ok)
 }
+
+func Test_trimStatusUrlFromSubmissions(t *testing.T) {
+	result, err := trimStatusUrlFromSubmissions("/submissions/id1/status")
+	assert.Nil(t, err)
+	assert.Equal(t, "", result)
+
+	result, err = trimStatusUrlFromSubmissions("/sparkapi/v1/submissions/id1/Status")
+	assert.Nil(t, err)
+	assert.Equal(t, "/sparkapi/v1", result)
+}
