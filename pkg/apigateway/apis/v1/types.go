@@ -34,9 +34,9 @@ type UploadFileResponse struct {
 type SubmissionStatusResponse struct {
 	SubmissionId string `json:"submissionId"`
 	State        string `json:"state"`
-	ApplicationMessage string  `json:"applicationMessage"`
-	SparkUI      string  `json:"sparkUI"`
-	RecentAppId  string `json:"recentAppId"`
+	ApplicationMessage string  `json:"applicationMessage,omitempty"`
+	SparkUI      string  `json:"sparkUI,omitempty"`
+	RecentAppId  string `json:"recentAppId,omitempty"`
 }
 
 type DeleteSubmissionResponse struct {
