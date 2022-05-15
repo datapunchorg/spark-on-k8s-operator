@@ -83,10 +83,12 @@ func Run(config Config) {
 
 	userName := config.UserName
 
+	apiRootPath := fmt.Sprintf("%s/v1", urlPrefix)
+
 	var group *gin.RouterGroup
 	if userName == "" {
 		glog.Infof("API gateway will be accessible without user name")
-		group = router.Group(fmt.Sprintf("%s/v1", urlPrefix), func(context *gin.Context) {
+		group = router.Group(apiRootPath, func(context *gin.Context) {
 		})
 	} else {
 		glog.Infof("API gateway will be accessible with required user name %s and matching password", userName)
@@ -99,7 +101,7 @@ func Run(config Config) {
 					"******************************",
 				userName, userPassword)
 		}
-		group = router.Group(fmt.Sprintf("%s/v1", urlPrefix), gin.BasicAuth(gin.Accounts{
+		group = router.Group(apiRootPath, gin.BasicAuth(gin.Accounts{
 			userName: userPassword,
 		}))
 	}
@@ -129,9 +131,9 @@ func Run(config Config) {
 			handlers.DeleteSubmission(context, &apiConfig)
 		})
 
-	group.GET("/sparkui/:id",
+	group.GET("/sparkui/*path",
 		func(context *gin.Context) {
-			handlers.ServeSparkUI(context, &apiConfig)
+			handlers.ServeSparkUI(context, &apiConfig, apiRootPath + "/sparkui")
 		})
 
 	group.GET("/health", handlers.HealthCheck)

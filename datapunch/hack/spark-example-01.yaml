@@ -20,10 +20,13 @@ spec:
     cores: 1
     instances: 1
     memory: "512m"
-#  sparkConf:
-#    spark.ui.proxyBase: /foo
+  sparkConf:
+#    spark.ui.reverseProxyUrl: /sparkapi/v1/sparkui/spark-example-01
+#    spark.ui.proxyRedirectUri: http://localhost:8080
+    spark.ui.proxyBase: /sparkapi/v1/sparkui/spark-example-01
 
 # kubectl logs spark-example-01-driver -n spark-01
 # kubectl describe sparkapp spark-example-01 -n spark-01
 # kubectl get sparkapp spark-example-01 -n spark-01 -o yaml
 # kubectl port-forward service/spark-example-01-ui-svc -n spark-01 4040:4040
+# curl -v http://localhost:8080/sparkapi/v1/sparkui/spark-example-01
