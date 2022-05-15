@@ -30,6 +30,7 @@ type Config struct {
 	UserName                  string
 	UserPassword              string
 	SparkApplicationNamespace string
+	SparkUIServiceUrlFormat   string
 	S3Region                  string
 	S3Bucket                  string
 	S3Root                    string

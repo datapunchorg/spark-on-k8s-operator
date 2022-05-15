@@ -80,6 +80,7 @@ var (
 	apiGatewayUrlPrefix            = flag.String("api-gateway-url-prefix", server.DefaultUrlPrefix, "API gateway REST server url prefix.")
 	apiGatewayUserName             = flag.String("api-gateway-user-name", "", "User name for API gateway REST server. If this is specified, people must provide the matching user name and password when sending request to the API gateway REST server.")
 	apiGatewayUserPassword         = flag.String("api-gateway-user-password", "", "User password for API gateway REST server. If this is specified together with user name, people must provide the matching user name and password when sending request to the API gateway REST server.")
+	apiGatewaySparkUIServiceURLFormat               = flag.String("api-gateway-spark-ui-service-url-format", "http://{{$appName}}-ui-svc.{{$appNamespace}}.svc.cluster.local:4040", "Spark UI Service URL format, used to provide accessing to Spark UI.")
 	apiGatewayS3Region             = flag.String("api-gateway-s3-region", "", "S3 AWS region for API gateway REST server to upload file.")
 	apiGatewayS3Bucket             = flag.String("api-gateway-s3-bucket", "", "S3 bucket for API gateway REST server to upload file.")
 	apiGatewayS3Root               = flag.String("api-gateway-s3-root", server.DefaultS3Root, "S3 root folder for API gateway REST server to upload file.")
@@ -248,6 +249,7 @@ func main() {
 				UserName: *apiGatewayUserName,
 				UserPassword: *apiGatewayUserPassword,
 				SparkApplicationNamespace: *namespace,
+				SparkUIServiceUrlFormat: *apiGatewaySparkUIServiceURLFormat,
 				S3Region: *apiGatewayS3Region,
 				S3Bucket: *apiGatewayS3Bucket,
 				S3Root: *apiGatewayS3Root,

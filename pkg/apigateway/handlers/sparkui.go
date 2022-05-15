@@ -23,8 +23,18 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"regexp"
 	"strings"
 )
+
+var sparkUIAppNameURLRegex = regexp.MustCompile("{{\\s*[$]appName\\s*}}")
+var sparkUIAppNamespaceURLRegex = regexp.MustCompile("{{\\s*[$]appNamespace\\s*}}")
+
+// sparkUIBackendUrlFormat example: http://{{$appName}}-ui-svc.{{$appNamespace}}.svc.cluster.local:4040
+
+func getSparkUIServiceUrl(sparkUIServiceUrlFormat string, appName string, appNamespace string) string {
+	return sparkUIAppNamespaceURLRegex.ReplaceAllString(sparkUIAppNameURLRegex.ReplaceAllString(sparkUIServiceUrlFormat, appName), appNamespace)
+}
 
 func ServeSparkUI(c *gin.Context, config *ApiConfig, uiRootPath string) {
 	path := c.Param("path")
@@ -40,8 +50,9 @@ func ServeSparkUI(c *gin.Context, config *ApiConfig, uiRootPath string) {
 		id = path[0:index]
 		path = path[index + 1:]
 	}
+	backendUrl := getSparkUIServiceUrl(config.SparkUIServiceUrlFormat, id, config.SparkApplicationNamespace)
 	proxyBasePath := fmt.Sprintf("%s/%s", uiRootPath, id)
-	proxy, err := newReverseProxy(id, config.SparkApplicationNamespace, path, proxyBasePath)
+	proxy, err := newReverseProxy(backendUrl, path, proxyBasePath)
 	if err != nil {
 		msg := fmt.Sprintf("Failed to create reverse proxy for %s: %s", id, err.Error())
 		writeErrorResponse(c, http.StatusInternalServerError, msg, nil)
@@ -51,19 +62,17 @@ func ServeSparkUI(c *gin.Context, config *ApiConfig, uiRootPath string) {
 	proxy.ServeHTTP(c.Writer, c.Request)
 }
 
-func newReverseProxy(submissionId string, appNamespace string, targetPath string, proxyBasePath string) (*httputil.ReverseProxy, error) {
-	//urlStr := fmt.Sprintf("http://%s-ui-svc.%s.svc.cluster.local:4040", submissionId, appNamespace)
-	urlStr := "http://localhost:4040"
-	log.Printf("Creating revers proxy for Spark UI url %s", urlStr)
+func newReverseProxy(backendUrl string, targetPath string, proxyBasePath string) (*httputil.ReverseProxy, error) {
+	log.Printf("Creating revers proxy for Spark UI backend url %s", backendUrl)
 	if targetPath != "" {
 		if !strings.HasPrefix(targetPath, "/") {
 			targetPath = "/" + targetPath
 		}
-		urlStr = urlStr + targetPath
+		backendUrl = backendUrl + targetPath
 	}
-	url, err := url.Parse(urlStr)
+	url, err := url.Parse(backendUrl)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse target Spark UI url %s: %s", urlStr, err.Error())
+		return nil, fmt.Errorf("failed to parse target Spark UI url %s: %s", backendUrl, err.Error())
 	}
 	director := func(req *http.Request) {
 		log.Printf("Reverse proxy: serving backend url %s for originally requested url %s", url, req.URL)

@@ -69,6 +69,7 @@ func Run(config Config) {
 
 	apiConfig := handlers.ApiConfig{
 		SparkApplicationNamespace: config.SparkApplicationNamespace,
+		SparkUIServiceUrlFormat:   config.SparkUIServiceUrlFormat,
 		S3Region:                  s3Region,
 		S3Bucket:                  s3Bucket,
 		S3Root:                    s3Root,
