@@ -127,6 +127,11 @@ func Run(config Config) {
 			handlers.PostSubmission(context, &apiConfig)
 		})
 
+	group.GET("/submissions",
+		func(context *gin.Context) {
+			handlers.ListSubmissions(context, &apiConfig)
+		})
+
 	group.GET("/submissions/:id/status",
 		func(context *gin.Context) {
 			handlers.GetSubmissionStatus(context, &apiConfig)

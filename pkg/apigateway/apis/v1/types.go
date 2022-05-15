@@ -48,11 +48,11 @@ type Response struct {
 	Message string `json:"message"`
 }
 
-type GetSparkApplicationsResponse struct {
-	Items []SparkApplicationSummary `json:"items"`
+type ListSubmissionsResponse struct {
+	Items []SparkApplicationSubmissionSummary `json:"items"`
 }
 
-type SparkApplicationSummary struct {
+type SparkApplicationSubmissionSummary struct {
 	SubmissionId string `json:"submissionId"`
 	State        string `json:"state"`
 	RecentAppId  string `json:"recentAppId"`
