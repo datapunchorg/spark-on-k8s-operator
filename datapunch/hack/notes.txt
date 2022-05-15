@@ -1,2 +1,6 @@
 Command example to start Spark Operator on local:
 xxx --kubeConfig datapunch/hack/kubeConfig.yml --api-gateway-port 8080 --api-gateway-s3-bucket bucket1 --api-gateway-config  datapunch/hack/serverConfig.yml
+
+Command example to curl Spark Operator on local:
+
+curl -u user1:password1 http://localhost:8080/sparkapi/v1/submissions

@@ -30,6 +30,18 @@ type AuthenticationHandler interface {
 	ValidateUserPassword(user string, password string) error
 }
 
+type SingleUserNamePasswordAuthenticationHandler struct {
+	User string
+	Password string
+}
+
+func (t *SingleUserNamePasswordAuthenticationHandler) ValidateUserPassword(user string, password string) error {
+	if t.User == user && t.Password == password {
+		return nil
+	}
+	return fmt.Errorf("failed to authenticate user %s", user)
+}
+
 func BasicAuthForRealm(authenticationHandler AuthenticationHandler, realm string) gin.HandlerFunc {
 	if realm == "" {
 		realm = "Authorization Required"
