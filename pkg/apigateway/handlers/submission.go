@@ -128,9 +128,10 @@ func PostSubmission(c *gin.Context, config *ApiConfig) {
 		sparkConf = map[string]string{}
 	}
 
-	sparkConf["spark.kubernetes.executor.podNamePrefix"] = submissionId
-
 	addMissingKeysInStringMap(sparkConf, config.SubmissionConfig.SparkConf)
+
+	sparkConf["spark.kubernetes.executor.podNamePrefix"] = submissionId
+	sparkConf["spark.ui.proxyBase"] = fmt.Sprintf("%s/%s", config.SparkUIBaseProxyPrefix, submissionId)
 
 	app.Spec.SparkConf = sparkConf
 
