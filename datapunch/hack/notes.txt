@@ -1,4 +1,5 @@
 Command example to start Spark Operator on local:
+export KUBERNETES_EXEC_INFO='{"kind":"ExecCredential","apiVersion":"client.authentication.k8s.io/v1beta1","spec":{"interactive":false}}'
 xxx --kubeConfig datapunch/hack/kubeConfig.yml --api-gateway-port 8080 --api-gateway-s3-bucket bucket1 --api-gateway-config  datapunch/hack/serverConfig.yml
 
 Command example to curl Spark Operator on local:

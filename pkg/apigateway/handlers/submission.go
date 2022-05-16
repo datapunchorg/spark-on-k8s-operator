@@ -129,6 +129,7 @@ func PostSubmission(c *gin.Context, config *ApiConfig) {
 
 	sparkConf["spark.kubernetes.executor.podNamePrefix"] = submissionId
 	sparkConf["spark.ui.proxyBase"] = fmt.Sprintf("%s/%s", config.SparkUIBaseProxyPrefix, submissionId)
+	sparkConf["spark.ui.port"] = "4040"
 
 	app.Spec.SparkConf = sparkConf
 
