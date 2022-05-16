@@ -81,6 +81,7 @@ var (
 	apiGatewayUserName             = flag.String("api-gateway-user-name", "", "User name for API gateway REST server. If this is specified, people must provide the matching user name and password when sending request to the API gateway REST server.")
 	apiGatewayUserPassword         = flag.String("api-gateway-user-password", "", "User password for API gateway REST server. If this is specified together with user name, people must provide the matching user name and password when sending request to the API gateway REST server.")
 	apiGatewaySparkUIServiceURLFormat               = flag.String("api-gateway-spark-ui-service-url-format", "http://{{$appName}}-ui-svc.{{$appNamespace}}.svc.cluster.local:4040", "Spark UI Service URL format, used to provide accessing to Spark UI.")
+	apiGatewaySparkUIModifyRedirectUrl              = flag.Bool("api-gateway-spark-ui-modify-redirect-url", false, "Whether to modify redirect url in the HTTP response returned from the Spark UI.")
 	apiGatewayS3Region             = flag.String("api-gateway-s3-region", "", "S3 AWS region for API gateway REST server to upload file.")
 	apiGatewayS3Bucket             = flag.String("api-gateway-s3-bucket", "", "S3 bucket for API gateway REST server to upload file.")
 	apiGatewayS3Root               = flag.String("api-gateway-s3-root", server.DefaultS3Root, "S3 root folder for API gateway REST server to upload file.")
@@ -250,6 +251,7 @@ func main() {
 				UserPassword: *apiGatewayUserPassword,
 				SparkApplicationNamespace: *namespace,
 				SparkUIServiceUrlFormat: *apiGatewaySparkUIServiceURLFormat,
+				SparkUIModifyRedirectUrl: *apiGatewaySparkUIModifyRedirectUrl,
 				S3Region: *apiGatewayS3Region,
 				S3Bucket: *apiGatewayS3Bucket,
 				S3Root: *apiGatewayS3Root,

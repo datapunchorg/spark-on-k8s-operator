@@ -128,8 +128,12 @@ func PostSubmission(c *gin.Context, config *ApiConfig) {
 	addMissingKeysInStringMap(sparkConf, config.SubmissionConfig.SparkConf)
 
 	sparkConf["spark.kubernetes.executor.podNamePrefix"] = submissionId
-	sparkConf["spark.ui.proxyBase"] = fmt.Sprintf("%s/%s", config.SparkUIBaseProxyPrefix, submissionId)
 	sparkConf["spark.ui.port"] = "4040"
+
+	sparkConf["spark.ui.proxyBase"] = fmt.Sprintf("%s/%s", config.SparkUIBaseProxyPrefix, submissionId)
+	if !config.SparkUIModifyRedirectUrl {
+		sparkConf["spark.ui.proxyRedirectUri"] = "/"
+	}
 
 	app.Spec.SparkConf = sparkConf
 

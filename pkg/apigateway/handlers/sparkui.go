@@ -51,7 +51,10 @@ func ServeSparkUI(c *gin.Context, config *ApiConfig, uiRootPath string) {
 		path = path[index + 1:]
 	}
 	backendUrl := getSparkUIServiceUrl(config.SparkUIServiceUrlFormat, id, config.SparkApplicationNamespace)
-	proxyBasePath := fmt.Sprintf("%s/%s", uiRootPath, id)
+	proxyBasePath := ""
+	if config.SparkUIModifyRedirectUrl {
+		proxyBasePath = fmt.Sprintf("%s/%s", uiRootPath, id)
+	}
 	proxy, err := newReverseProxy(backendUrl, path, proxyBasePath)
 	if err != nil {
 		msg := fmt.Sprintf("Failed to create reverse proxy for %s: %s", id, err.Error())
@@ -83,7 +86,7 @@ func newReverseProxy(backendUrl string, targetPath string, proxyBasePath string)
 		}
 	}
 	modifyResponse := func(resp *http.Response) error {
-		if resp.StatusCode == http.StatusFound {
+		if proxyBasePath != "" && resp.StatusCode == http.StatusFound {
 			headerName := "Location"
 			locationHeaderValues := resp.Header[headerName]
 			if len(locationHeaderValues) > 0 {

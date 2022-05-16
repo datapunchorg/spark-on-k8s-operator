@@ -74,6 +74,7 @@ func Run(config Config) {
 	apiConfig := handlers.ApiConfig{
 		SparkApplicationNamespace: config.SparkApplicationNamespace,
 		SparkUIServiceUrlFormat:   config.SparkUIServiceUrlFormat,
+		SparkUIModifyRedirectUrl:  config.SparkUIModifyRedirectUrl,
 		SparkUIBaseProxyPrefix:    fmt.Sprintf("%s/sparkui", getV1ApiRootPath(config.UrlPrefix)),
 		S3Region:                  s3Region,
 		S3Bucket:                  s3Bucket,

@@ -31,6 +31,7 @@ type Config struct {
 	UserPassword              string
 	SparkApplicationNamespace string
 	SparkUIServiceUrlFormat   string
+	SparkUIModifyRedirectUrl  bool
 	S3Region                  string
 	S3Bucket                  string
 	S3Root                    string

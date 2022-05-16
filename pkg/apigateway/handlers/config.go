@@ -19,6 +19,7 @@ package handlers
 type ApiConfig struct {
 	SparkApplicationNamespace string `json:"sparkApplicationNamespace"`
 	SparkUIServiceUrlFormat   string `json:"sparkUIServiceUrlFormat"`
+	SparkUIModifyRedirectUrl  bool   `json:"sparkUIModifyRedirectUrl"`
 	SparkUIBaseProxyPrefix    string `json:"sparkUIBaseProxyPrefix"`
 	S3Region                  string `json:"s3Region"`
 	S3Bucket                  string `json:"s3Bucket"`
