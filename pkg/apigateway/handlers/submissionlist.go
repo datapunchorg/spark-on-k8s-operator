@@ -22,6 +22,7 @@ import (
 	"github.com/GoogleCloudPlatform/spark-on-k8s-operator/pkg/apigateway/apis/v1"
 	"github.com/GoogleCloudPlatform/spark-on-k8s-operator/pkg/apis/sparkoperator.k8s.io/v1beta2"
 	"github.com/gin-gonic/gin"
+	"github.com/golang/glog"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"net/http"
 	"strconv"
@@ -40,15 +41,21 @@ func ListSubmissions(c *gin.Context, config *ApiConfig) {
 		limit = parsedInt
 	}
 
+	filterState, _ := c.GetQuery("state")
+
 	crdClient, err := createSparkApplicationClient()
 	if err != nil {
 		writeErrorResponse(c, http.StatusInternalServerError, "", err)
 		return
 	}
 
-	appList, err := crdClient.SparkoperatorV1beta2().SparkApplications(config.SparkApplicationNamespace).List(context.TODO(), metav1.ListOptions{
-		Limit: limit,
-	})
+	glog.Infof("Listing applications, limit: %d, state: %s", limit, filterState)
+
+	appList, err := crdClient.SparkoperatorV1beta2().SparkApplications(config.SparkApplicationNamespace).List(
+		context.TODO(),
+		metav1.ListOptions{
+			Limit: limit,
+		})
 	if err != nil {
 		msg := fmt.Sprintf("Failed to get SparkApplication: %s", err.Error())
 		writeErrorResponse(c, http.StatusInternalServerError, msg, nil)
@@ -60,6 +67,10 @@ func ListSubmissions(c *gin.Context, config *ApiConfig) {
 		state := v1beta2.UnknownState
 		if app.Status.AppState.State != "" {
 			state = app.Status.AppState.State
+		}
+
+		if filterState != "" && filterState != string(state) {
+			continue
 		}
 
 		id := app.Name

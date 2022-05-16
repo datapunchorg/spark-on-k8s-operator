@@ -19,7 +19,7 @@ package handlers
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"log"
+	"github.com/golang/glog"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -63,7 +63,7 @@ func ServeSparkUI(c *gin.Context, config *ApiConfig, uiRootPath string) {
 }
 
 func newReverseProxy(backendUrl string, targetPath string, proxyBasePath string) (*httputil.ReverseProxy, error) {
-	log.Printf("Creating revers proxy for Spark UI backend url %s", backendUrl)
+	glog.Infof("Creating revers proxy for Spark UI backend url %s", backendUrl)
 	if targetPath != "" {
 		if !strings.HasPrefix(targetPath, "/") {
 			targetPath = "/" + targetPath
@@ -75,7 +75,7 @@ func newReverseProxy(backendUrl string, targetPath string, proxyBasePath string)
 		return nil, fmt.Errorf("failed to parse target Spark UI url %s: %s", backendUrl, err.Error())
 	}
 	director := func(req *http.Request) {
-		log.Printf("Reverse proxy: serving backend url %s for originally requested url %s", url, req.URL)
+		glog.Infof("Reverse proxy: serving backend url %s for originally requested url %s", url, req.URL)
 		req.URL = url
 		if _, ok := req.Header["User-Agent"]; !ok {
 			// explicitly disable User-Agent so it's not set to default value
@@ -91,7 +91,7 @@ func newReverseProxy(backendUrl string, targetPath string, proxyBasePath string)
 				for _, oldHeaderValue := range locationHeaderValues {
 					parsedUrl, err := url.Parse(oldHeaderValue)
 					if err != nil {
-						log.Printf("Reverse proxy: invalid response header value %s: %s (backend url %s): %s", headerName, oldHeaderValue, url, err.Error())
+						glog.Infof("Reverse proxy: invalid response header value %s: %s (backend url %s): %s", headerName, oldHeaderValue, url, err.Error())
 						newValues = append(newValues, oldHeaderValue)
 					} else {
 						parsedUrl.Scheme = ""
@@ -102,7 +102,7 @@ func newReverseProxy(backendUrl string, targetPath string, proxyBasePath string)
 						}
 						parsedUrl.Path = proxyBasePath + newPath
 						newHeaderValue := parsedUrl.String()
-						log.Printf("Reverse proxy: modifying response header %s from %s to %s (backend url %s)", headerName, oldHeaderValue, newHeaderValue, url)
+						glog.Infof("Reverse proxy: modifying response header %s from %s to %s (backend url %s)", headerName, oldHeaderValue, newHeaderValue, url)
 						newValues = append(newValues, newHeaderValue)
 					}
 				}
