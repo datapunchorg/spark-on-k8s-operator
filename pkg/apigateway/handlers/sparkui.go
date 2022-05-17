@@ -67,17 +67,20 @@ func ServeSparkUI(c *gin.Context, config *ApiConfig, uiRootPath string) {
 
 func newReverseProxy(backendUrl string, targetPath string, proxyBasePath string) (*httputil.ReverseProxy, error) {
 	glog.Infof("Creating revers proxy for Spark UI backend url %s", backendUrl)
+	targetUrl := backendUrl
 	if targetPath != "" {
 		if !strings.HasPrefix(targetPath, "/") {
 			targetPath = "/" + targetPath
 		}
-		backendUrl = backendUrl + targetPath
+		targetUrl += targetPath
 	}
-	url, err := url.Parse(backendUrl)
+	url, err := url.Parse(targetUrl)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse target Spark UI url %s: %s", backendUrl, err.Error())
 	}
 	director := func(req *http.Request) {
+		url.RawQuery = req.URL.RawQuery
+		url.RawFragment = req.URL.RawFragment
 		glog.Infof("Reverse proxy: serving backend url %s for originally requested url %s", url, req.URL)
 		req.URL = url
 		if _, ok := req.Header["User-Agent"]; !ok {
