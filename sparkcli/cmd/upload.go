@@ -26,7 +26,7 @@ import (
 var uploadCmd = &cobra.Command{
 	Use:   "upload <local file path>",
 	Short: "Upload a file",
-	Long:  `Upload to the API gateway, which will save the file to S3 and return a S3 url`,
+	Long:  `Upload to the API gateway, which will save the file to S3 and return an S3 url`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) < 1 {
 			fmt.Fprintln(os.Stderr, "must specify a local file to upload")

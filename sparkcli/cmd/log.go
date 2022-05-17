@@ -27,7 +27,7 @@ var FollowLogs bool
 
 var logCommand = &cobra.Command{
 	Use:   "log <submissionId>",
-	Short: "log is a sub-command that fetches logs of a Spark application.",
+	Short: "Fetch logs of the application by submission id",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) < 1 {

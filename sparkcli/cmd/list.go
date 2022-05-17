@@ -27,7 +27,7 @@ var Limit int64
 var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List application submissions",
-	Long:  `List application submissions`,
+	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		client := NewBasicAuthClient(ServerUrl, User, Password)
 

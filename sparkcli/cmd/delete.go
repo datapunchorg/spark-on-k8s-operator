@@ -26,8 +26,8 @@ import (
 
 var deleteCmd = &cobra.Command{
 	Use:   "delete <submissionId>",
-	Short: "Delete a SparkApplication",
-	Long:  `Delete a SparkApplication with a given submission id`,
+	Short: "Delete the application submission",
+	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) < 1 {
 			fmt.Fprintln(os.Stderr, "must specify a submission id")

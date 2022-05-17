@@ -46,7 +46,7 @@ var SparkConf []string
 var submitCmd = &cobra.Command{
 	Use:   "submit <application file> <application argument> <application argument>",
 	Short: "Submit a Spark application",
-	Long:  `Submit a Spark application to the API gateway.`,
+	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) < 1 {
 			fmt.Fprintln(os.Stderr, "must specify an application file")

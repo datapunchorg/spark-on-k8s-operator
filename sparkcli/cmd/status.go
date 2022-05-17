@@ -26,8 +26,8 @@ import (
 
 var statusCmd = &cobra.Command{
 	Use:   "status <submissionId>",
-	Short: "Check status of a SparkApplication",
-	Long:  `Check status of a SparkApplication with a given submission id`,
+	Short: "Get status of an application submission",
+	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) < 1 {
 			fmt.Fprintln(os.Stderr, "must specify a submission id")
