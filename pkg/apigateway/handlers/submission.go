@@ -43,18 +43,18 @@ func PostNewSubmission(c *gin.Context, config *ApiConfig) {
 func PostSubmissionWithId(c *gin.Context, config *ApiConfig) {
 	submissionId := c.Param("id")
 
-	//crdClient, err := createSparkApplicationClient()
-	//if err != nil {
-	//	writeErrorResponse(c, http.StatusInternalServerError, "", err)
-	//	return
-	//}
+	crdClient, err := createSparkApplicationClient()
+	if err != nil {
+		writeErrorResponse(c, http.StatusInternalServerError, "", err)
+		return
+	}
 
-	//app, err := crdClient.SparkoperatorV1beta2().SparkApplications(config.SparkApplicationNamespace).Get(context.TODO(), submissionId, metav1.GetOptions{})
-	//if err != nil {
-	//	msg := fmt.Sprintf("Failed to get SparkApplication %s: %s", id, err.Error())
-	//	writeErrorResponse(c, http.StatusInternalServerError, msg, nil)
-	//	return
-	//}
+	app, err := crdClient.SparkoperatorV1beta2().SparkApplications(config.SparkApplicationNamespace).Get(context.TODO(), submissionId, metav1.GetOptions{})
+	if err == nil {
+		msg := fmt.Sprintf("Cannot create SparkApplication %s since it already exists in namespace %s (created at %s)", submissionId, config.SparkApplicationNamespace, app.CreationTimestamp)
+		writeErrorResponse(c, http.StatusBadRequest, msg, nil)
+		return
+	}
 
 	CreateSubmission(c, config, submissionId)
 }

@@ -135,10 +135,10 @@ func Run(config Config) {
 			handlers.PostNewSubmission(context, &apiConfig)
 		})
 
-	//group.POST("/submissions/:id",
-	//	func(context *gin.Context) {
-	//		handlers.PostSubmissionWithId(context, &apiConfig)
-	//	})
+	group.POST("/submissions/:id",
+		func(context *gin.Context) {
+			handlers.PostSubmissionWithId(context, &apiConfig)
+		})
 
 	group.GET("/submissions",
 		func(context *gin.Context) {
