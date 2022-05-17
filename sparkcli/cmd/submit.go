@@ -17,6 +17,7 @@ limitations under the License.
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	apigatewayv1 "github.com/GoogleCloudPlatform/spark-on-k8s-operator/pkg/apigateway/apis/v1"
 	"github.com/GoogleCloudPlatform/spark-on-k8s-operator/pkg/apis/sparkoperator.k8s.io/v1beta2"
@@ -116,10 +117,21 @@ var submitCmd = &cobra.Command{
 
 		submissionId, err := client.SubmitApplication(request)
 		if err != nil {
-			log.Fatalf("Failed to submit application: %s", err.Error())
+			ExitWithErrorF("Failed to submit application: %s", err.Error())
 		}
 
 		log.Printf("Submitted application, submission id: %s", submissionId)
+
+		if OutputFile != "" {
+			out := map[string]string{
+				"submissionId": submissionId,
+			}
+			bytes, err := json.Marshal(out)
+			if err != nil {
+				ExitWithErrorF("Failed to marshal output to json: %s", err.Error())
+			}
+			WriteOutputFileExitOnError(OutputFile, string(bytes))
+		}
 
 		if waitAppCompletion(sparkConfMap) {
 			maxWaitHours := 24 * time.Hour
@@ -155,6 +167,8 @@ var submitCmd = &cobra.Command{
 }
 
 func init() {
+	addOutputFlag(submitCmd)
+
 	submitCmd.Flags().StringVarP(&Class, "class", "", "",
 		"the main class of the Spark application")
 

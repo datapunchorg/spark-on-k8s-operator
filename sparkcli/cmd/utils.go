@@ -23,6 +23,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 )
 
@@ -61,4 +62,26 @@ func InsecureTLS(insecureSkipVerify bool) {
 
 func ErrorBadHttpStatus(url string, response *http.Response) error {
 	return fmt.Errorf("got bad response from %s: %s", url, response.Status)
+}
+
+func WriteOutputFileExitOnError(filePath string, fileContent string) {
+	f, err := os.Create(filePath)
+	if err != nil {
+		ExitWithError(fmt.Sprintf("Failed to create output file %s: %s", filePath, err.Error()))
+	}
+	defer f.Close()
+	_, err = f.WriteString(fileContent)
+	if err != nil {
+		ExitWithError(fmt.Sprintf("Failed to write output file %s: %s", filePath, err.Error()))
+	}
+}
+
+func ExitWithError(str string) {
+	fmt.Fprintln(os.Stderr, str)
+	os.Exit(1)
+}
+
+func ExitWithErrorF(a ...interface{}) {
+	fmt.Fprintln(os.Stderr, a)
+	os.Exit(1)
 }

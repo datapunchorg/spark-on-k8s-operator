@@ -196,6 +196,51 @@ func (c *Client) GetApplicationStatus(submissionId string) (string, apigatewayv1
 	return responseStr, responseStruct, nil
 }
 
+func (c *Client) ListSubmissions(limit int64) (string, apigatewayv1.ListSubmissionsResponse, error) {
+	result := apigatewayv1.ListSubmissionsResponse{}
+
+	url := fmt.Sprintf("%s/submissions", c.serverUrl)
+
+	if limit > 0 {
+		url += fmt.Sprintf("?limit=%d", limit)
+	}
+
+	req, err := http.NewRequest(http.MethodGet, url, bytes.NewReader([]byte{}))
+	if err != nil {
+		return "", result,
+			fmt.Errorf("failed to create get request for %s: %s", url, err.Error())
+	}
+	req.SetBasicAuth(c.credential.Name, c.credential.Password)
+
+	response, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", result,
+			fmt.Errorf("failed to get %s: %s", url, err.Error())
+	}
+
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return "", result, ErrorBadHttpStatus(url, response)
+	}
+
+	responseBytes, err := io.ReadAll(response.Body)
+	if err != nil {
+		return "", result,
+			fmt.Errorf("failed to read response data for %s: %s", url, err.Error())
+	}
+
+	responseStr := string(responseBytes)
+
+	err = json.Unmarshal(responseBytes, &result)
+	if err != nil {
+		return responseStr, result,
+			fmt.Errorf("failed to parse response from %s: %s, response: %s", url, err.Error(), responseStr)
+	}
+
+	return responseStr, result, nil
+}
+
 func (c *Client) PrintApplicationLog(submissionId string, executorId int, followLogs bool) {
 	url := fmt.Sprintf("%s/submissions/%s/log", c.serverUrl, submissionId)
 

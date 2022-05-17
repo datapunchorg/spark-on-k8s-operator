@@ -17,31 +17,31 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
-	"log"
-	"os"
-
+	"encoding/json"
 	"github.com/spf13/cobra"
+	"log"
 )
 
-var statusCmd = &cobra.Command{
-	Use:   "status <submissionId>",
-	Short: "Check status of a SparkApplication",
-	Long:  `Check status of a SparkApplication with a given submission id`,
+var Limit int64
+
+var listCmd = &cobra.Command{
+	Use:   "list",
+	Short: "List application submissions",
+	Long:  `List application submissions`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) < 1 {
-			fmt.Fprintln(os.Stderr, "must specify a submission id")
-			return
-		}
-
-		submissionId := args[0]
-
 		client := NewBasicAuthClient(ServerUrl, User, Password)
 
-		responseStr, _, err := client.GetApplicationStatus(submissionId)
+		_, responseStruct, err := client.ListSubmissions(Limit)
 		if err != nil {
-			ExitWithErrorF("Failed to get application status: %s", err.Error())
+			ExitWithErrorF("Failed to get application submissions: %s", err.Error())
 		}
+
+		responseBytes, err := json.MarshalIndent(responseStruct, "", "  ")
+		if err != nil {
+			ExitWithErrorF("Failed to marshal application submissions: %s", err.Error())
+		}
+
+		responseStr := string(responseBytes)
 
 		if OutputFile != "" {
 			WriteOutputFileExitOnError(OutputFile, responseStr)
@@ -52,5 +52,8 @@ var statusCmd = &cobra.Command{
 }
 
 func init() {
-	addOutputFlag(statusCmd)
+	addOutputFlag(listCmd)
+
+	listCmd.Flags().Int64VarP(&Limit, "limit", "", 0,
+		"limit of max number of items returned by the server")
 }

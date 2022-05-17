@@ -27,6 +27,8 @@ var InsecureHttps bool
 var User string
 var Password string
 
+var OutputFile string
+
 var rootCmd = &cobra.Command{
 	Use:   "sparkcli",
 	Short: "sparkcli is the command-line tool to submit Spark application to Spark Operator API Gateway",
@@ -43,7 +45,7 @@ func init() {
 		"User name to connect to API gateway")
 	rootCmd.PersistentFlags().StringVarP(&Password, "password", "p", "",
 		"User password to connect to API gateway")
-	rootCmd.AddCommand(uploadCmd, submitCmd, statusCmd, logCommand, deleteCmd)
+	rootCmd.AddCommand(uploadCmd, submitCmd, statusCmd, logCommand, deleteCmd, listCmd)
 }
 
 func Execute() {
@@ -54,4 +56,9 @@ func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "%v", err)
 	}
+}
+
+func addOutputFlag(cmd *cobra.Command)  {
+	cmd.Flags().StringVarP(&OutputFile, "output", "o", "",
+		"the file to write output information")
 }
