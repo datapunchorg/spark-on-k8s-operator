@@ -35,9 +35,37 @@ type SingleUserNamePasswordAuthenticationHandler struct {
 	Password string
 }
 
+type MultiUserNamePasswordsAuthenticationHandler struct {
+	UserPasswords map[string]string
+}
+
+type ChainedAuthenticationHandler struct {
+	Handlers []AuthenticationHandler
+}
+
 func (t *SingleUserNamePasswordAuthenticationHandler) ValidateUserPassword(user string, password string) error {
 	if t.User == user && t.Password == password {
 		return nil
+	}
+	return fmt.Errorf("failed to authenticate user %s", user)
+}
+
+func (t *MultiUserNamePasswordsAuthenticationHandler) ValidateUserPassword(user string, password string) error {
+	expectedPassword, ok := t.UserPasswords[user]
+	if !ok {
+		return fmt.Errorf("failed to authenticate user %s", user)
+	}
+	if expectedPassword == password {
+		return nil
+	}
+	return fmt.Errorf("failed to authenticate user %s", user)
+}
+
+func (t *ChainedAuthenticationHandler) ValidateUserPassword(user string, password string) error {
+	for _, handler := range t.Handlers {
+		if handler.ValidateUserPassword(user, password) == nil {
+			return nil
+		}
 	}
 	return fmt.Errorf("failed to authenticate user %s", user)
 }

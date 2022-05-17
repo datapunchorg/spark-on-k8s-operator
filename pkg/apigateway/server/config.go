@@ -40,5 +40,6 @@ type Config struct {
 
 // ExtraConfig contains content for Config.ConfigFile
 type ExtraConfig struct {
+	UserPasswords      map[string]string `json:"userPasswords"` // TODO use a more secure way to store password
 	SubmissionConfig   handlers.ApplicationSubmissionConfig `json:"submissionConfig"`
 }

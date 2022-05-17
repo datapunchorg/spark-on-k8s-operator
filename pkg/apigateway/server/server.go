@@ -108,9 +108,16 @@ func Run(config Config) {
 					"******************************",
 				userName, userPassword)
 		}
-		authnHandler := SingleUserNamePasswordAuthenticationHandler{
-			User: userName,
-			Password: userPassword,
+		authnHandler := ChainedAuthenticationHandler{
+			Handlers: []AuthenticationHandler{
+				&SingleUserNamePasswordAuthenticationHandler{
+					User: userName,
+					Password: userPassword,
+				},
+				&MultiUserNamePasswordsAuthenticationHandler{
+					UserPasswords: extraConfig.UserPasswords,
+				},
+			},
 		}
 		group = router.Group(apiRootPath, BasicAuthForRealm(&authnHandler, ""))
 		//group = router.Group(apiRootPath, gin.BasicAuth(gin.Accounts{

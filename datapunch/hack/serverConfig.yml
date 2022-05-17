@@ -1,3 +1,7 @@
+userPasswords:
+  test1: pwd1
+  test2: pwd2
+
 submissionConfig:
   serviceAccount: spark
   defaultSparkVersion: 3.1
