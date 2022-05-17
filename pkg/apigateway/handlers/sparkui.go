@@ -76,7 +76,7 @@ func newReverseProxy(backendUrl string, targetPath string, proxyBasePath string)
 	}
 	url, err := url.Parse(targetUrl)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse target Spark UI url %s: %s", backendUrl, err.Error())
+		return nil, fmt.Errorf("failed to parse target Spark UI url %s: %s", targetUrl, err.Error())
 	}
 	director := func(req *http.Request) {
 		url.RawQuery = req.URL.RawQuery
