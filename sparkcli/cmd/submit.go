@@ -30,6 +30,8 @@ import (
 
 var SparkWaitAppCompletion = "spark.kubernetes.submission.waitAppCompletion"
 
+var CreationSubmissionId string
+
 var Image string
 var SparkVersion string
 var Type string
@@ -115,9 +117,18 @@ var submitCmd = &cobra.Command{
 			},
 		}
 
-		submissionId, err := client.SubmitApplication(request)
-		if err != nil {
-			ExitWithErrorF("Failed to submit application: %s", err.Error())
+		submissionId := CreationSubmissionId
+		var err error
+		if submissionId == "" {
+			submissionId, err = client.SubmitApplication(request)
+			if err != nil {
+				ExitWithErrorF("Failed to submit application: %s", err.Error())
+			}
+		} else {
+			submissionId, err = client.SubmitApplicationWithId(request, submissionId)
+			if err != nil {
+				ExitWithErrorF("Failed to submit application with id %s: %s", submissionId, err.Error())
+			}
 		}
 
 		log.Printf("Submitted application, submission id: %s", submissionId)
@@ -168,6 +179,9 @@ var submitCmd = &cobra.Command{
 
 func init() {
 	addOutputFlag(submitCmd)
+
+	submitCmd.Flags().StringVarP(&CreationSubmissionId, "id", "", "",
+		"the unique id to submit Spark application, please only provide this argument when submitting a Spark streaming application and want to avoid running same application duplicately")
 
 	submitCmd.Flags().StringVarP(&Class, "class", "", "",
 		"the main class of the Spark application")

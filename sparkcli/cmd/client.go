@@ -104,6 +104,15 @@ func (c *Client) UploadFileToS3(filePath string) (string, error) {
 
 func (c *Client) SubmitApplication(request apigatewayv1.SparkApplicationSubmissionRequest) (string, error) {
 	url := fmt.Sprintf("%s/submissions", c.serverUrl)
+	return c.submitApplicationImpl(request, url)
+}
+
+func (c *Client) SubmitApplicationWithId(request apigatewayv1.SparkApplicationSubmissionRequest, submissionId string) (string, error) {
+	url := fmt.Sprintf("%s/submissions/%s", c.serverUrl, submissionId)
+	return c.submitApplicationImpl(request, url)
+}
+
+func (c *Client) submitApplicationImpl(request apigatewayv1.SparkApplicationSubmissionRequest, url string) (string, error) {
 	requestBytes, err := json.Marshal(request)
 	if err != nil {
 		return "",

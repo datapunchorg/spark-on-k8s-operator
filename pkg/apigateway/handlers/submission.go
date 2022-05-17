@@ -18,12 +18,14 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/GoogleCloudPlatform/spark-on-k8s-operator/pkg/apigateway/apis/v1"
 	"github.com/GoogleCloudPlatform/spark-on-k8s-operator/pkg/apis/sparkoperator.k8s.io/v1beta2"
 	crdclientset "github.com/GoogleCloudPlatform/spark-on-k8s-operator/pkg/client/clientset/versioned"
 	"github.com/golang/glog"
 	"github.com/google/uuid"
+	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"net/http"
 	"strings"
@@ -31,23 +33,61 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func PostSubmission(c *gin.Context, config *ApiConfig) {
+func PostNewSubmission(c *gin.Context, config *ApiConfig) {
+	submissionIdPrefix := "app-"
+	submissionId := submissionIdPrefix + strings.ReplaceAll(uuid.New().String(), "-", "")
+
+	CreateSubmission(c, config, submissionId)
+}
+
+func PostSubmissionWithId(c *gin.Context, config *ApiConfig) {
+	submissionId := c.Param("id")
+
+	//crdClient, err := createSparkApplicationClient()
+	//if err != nil {
+	//	writeErrorResponse(c, http.StatusInternalServerError, "", err)
+	//	return
+	//}
+
+	//app, err := crdClient.SparkoperatorV1beta2().SparkApplications(config.SparkApplicationNamespace).Get(context.TODO(), submissionId, metav1.GetOptions{})
+	//if err != nil {
+	//	msg := fmt.Sprintf("Failed to get SparkApplication %s: %s", id, err.Error())
+	//	writeErrorResponse(c, http.StatusInternalServerError, msg, nil)
+	//	return
+	//}
+
+	CreateSubmission(c, config, submissionId)
+}
+
+func CreateSubmission(c *gin.Context, config *ApiConfig, submissionId string) {
 	var request v1.SparkApplicationSubmissionRequest
 
-	if err := c.BindJSON(&request); err != nil {
+	bytes, err := ioutil.ReadAll(c.Request.Body)
+	c.Request.Body.Close()
+	if err != nil {
+		msg := fmt.Sprintf("Failed to read request body: %s", err.Error())
+		writeErrorResponse(c, http.StatusInternalServerError, msg, nil)
+		return
+	}
+
+	err = json.Unmarshal(bytes, &request)
+	if err != nil {
 		msg := fmt.Sprintf("Bad json request: %s", err.Error())
 		writeErrorResponse(c, http.StatusBadRequest, msg, nil)
 		return
 	}
+
+	//if err := c.BindJSON(&request); err != nil {
+	//	msg := fmt.Sprintf("Bad json request: %s", err.Error())
+	//	writeErrorResponse(c, http.StatusBadRequest, msg, nil)
+	//	return
+	//}
 
 	crdClient, err := createSparkApplicationClient()
 	if err != nil {
 		writeErrorResponse(c, http.StatusInternalServerError, "", err)
 		return
 	}
-
-	submissionIdPrefix := "app-"
-	submissionId := submissionIdPrefix + strings.ReplaceAll(uuid.New().String(), "-", "")
 
 	app := v1beta2.SparkApplication{
 		TypeMeta: metav1.TypeMeta{
@@ -146,30 +186,6 @@ func PostSubmission(c *gin.Context, config *ApiConfig) {
 
 	response := v1.SparkApplicationSubmissionResponse{
 		SubmissionId: submissionId,
-	}
-
-	c.IndentedJSON(http.StatusOK, response)
-}
-
-func DeleteSubmission(c *gin.Context, config *ApiConfig) {
-	id := c.Param("id")
-
-	crdClient, err := createSparkApplicationClient()
-	if err != nil {
-		writeErrorResponse(c, http.StatusInternalServerError, "", err)
-		return
-	}
-
-	err = crdClient.SparkoperatorV1beta2().SparkApplications(config.SparkApplicationNamespace).Delete(context.TODO(), id, metav1.DeleteOptions{})
-	if err != nil {
-		msg := fmt.Sprintf("Failed to delete SparkApplication %s: %s", id, err.Error())
-		writeErrorResponse(c, http.StatusInternalServerError, msg, nil)
-		return
-	}
-
-	response := v1.DeleteSubmissionResponse{
-		SubmissionId: id,
-		Message:      "Application deleted",
 	}
 
 	c.IndentedJSON(http.StatusOK, response)
