@@ -28,6 +28,7 @@ import (
 	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -43,17 +44,40 @@ func PostNewSubmission(c *gin.Context, config *ApiConfig) {
 func PostSubmissionWithId(c *gin.Context, config *ApiConfig) {
 	submissionId := c.Param("id")
 
+	overwrite := false
+	overwriteQueryParamName := "overwrite"
+	if queryValue, ok := c.GetQuery(overwriteQueryParamName); ok {
+		if queryValue != "" {
+			var err error
+			overwrite, err = strconv.ParseBool(queryValue)
+			if err != nil {
+				msg := fmt.Sprintf("Invalid query parameter value for %s: %s. It should be true or false.", overwriteQueryParamName, queryValue)
+				writeErrorResponse(c, http.StatusBadRequest, msg, nil)
+				return
+			}
+		}
+	}
+
 	crdClient, err := createSparkApplicationClient()
 	if err != nil {
 		writeErrorResponse(c, http.StatusInternalServerError, "", err)
 		return
 	}
 
-	app, err := crdClient.SparkoperatorV1beta2().SparkApplications(config.SparkApplicationNamespace).Get(context.TODO(), submissionId, metav1.GetOptions{})
-	if err == nil {
-		msg := fmt.Sprintf("Cannot create SparkApplication %s since it already exists in namespace %s (created at %s)", submissionId, config.SparkApplicationNamespace, app.CreationTimestamp)
-		writeErrorResponse(c, http.StatusBadRequest, msg, nil)
-		return
+	if overwrite {
+		glog.Infof("Trying to delete SparkApplication %s in namespace %s due to overwrite mode", submissionId, config.SparkApplicationNamespace)
+		err := crdClient.SparkoperatorV1beta2().SparkApplications(config.SparkApplicationNamespace).Delete(context.TODO(), submissionId, metav1.DeleteOptions{})
+		if err != nil {
+			glog.Infof("Failed to delete SparkApplication %s in namespace %s, ignore and continue creating new SparkApplication: %s", submissionId, config.SparkApplicationNamespace, err.Error())
+		}
+	} else {
+		glog.Infof("Checking whether SparkApplication %s already exists in namespace %s", submissionId, config.SparkApplicationNamespace)
+		app, err := crdClient.SparkoperatorV1beta2().SparkApplications(config.SparkApplicationNamespace).Get(context.TODO(), submissionId, metav1.GetOptions{})
+		if err == nil {
+			msg := fmt.Sprintf("Cannot create SparkApplication %s since it already exists in namespace %s (created at %s)", submissionId, config.SparkApplicationNamespace, app.CreationTimestamp)
+			writeErrorResponse(c, http.StatusBadRequest, msg, nil)
+			return
+		}
 	}
 
 	CreateSubmission(c, config, submissionId)
