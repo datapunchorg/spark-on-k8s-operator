@@ -20,6 +20,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -61,7 +62,14 @@ func InsecureTLS(insecureSkipVerify bool) {
 }
 
 func ErrorBadHttpStatus(url string, response *http.Response) error {
-	return fmt.Errorf("got bad response from %s: %s", url, response.Status)
+	bytes, err := ioutil.ReadAll(response.Body)
+	str := ""
+	if err != nil {
+		str = err.Error()
+	} else {
+		str = string(bytes)
+	}
+	return fmt.Errorf("got bad response status %s from %s, response body: %s", response.Status, url, str)
 }
 
 func WriteOutputFileExitOnError(filePath string, fileContent string) {
