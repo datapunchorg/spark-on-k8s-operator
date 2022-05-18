@@ -107,8 +107,11 @@ func (c *Client) SubmitApplication(request apigatewayv1.SparkApplicationSubmissi
 	return c.submitApplicationImpl(request, url)
 }
 
-func (c *Client) SubmitApplicationWithId(request apigatewayv1.SparkApplicationSubmissionRequest, submissionId string) (string, error) {
+func (c *Client) SubmitApplicationWithId(request apigatewayv1.SparkApplicationSubmissionRequest, submissionId string, overwrite bool) (string, error) {
 	url := fmt.Sprintf("%s/submissions/%s", c.serverUrl, submissionId)
+	if overwrite {
+		url += fmt.Sprintf("?overwrite=%t", overwrite)
+	}
 	return c.submitApplicationImpl(request, url)
 }
 

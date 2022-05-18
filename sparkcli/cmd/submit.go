@@ -31,6 +31,7 @@ import (
 var SparkWaitAppCompletion = "spark.kubernetes.submission.waitAppCompletion"
 
 var CreationSubmissionId string
+var Overwrite bool
 
 var Image string
 var SparkVersion string
@@ -120,12 +121,15 @@ var submitCmd = &cobra.Command{
 		submissionId := ""
 		var err error
 		if CreationSubmissionId == "" {
+			if Overwrite {
+				ExitWithError(fmt.Sprintf("Cannot overwrite Spark application without --id argument"))
+			}
 			submissionId, err = client.SubmitApplication(request)
 			if err != nil {
 				ExitWithError(fmt.Sprintf("Failed to submit application: %s", err.Error()))
 			}
 		} else {
-			submissionId, err = client.SubmitApplicationWithId(request, CreationSubmissionId)
+			submissionId, err = client.SubmitApplicationWithId(request, CreationSubmissionId, Overwrite)
 			if err != nil {
 				ExitWithError(fmt.Sprintf("Failed to submit application with id %s: %s", CreationSubmissionId, err.Error()))
 			}
@@ -182,6 +186,9 @@ func init() {
 
 	submitCmd.Flags().StringVarP(&CreationSubmissionId, "id", "", "",
 		"the unique id to submit Spark application, please only provide this argument when submitting a Spark streaming application and want to avoid running same application duplicately")
+
+	submitCmd.Flags().BoolVarP(&Overwrite, "overwrite", "", false,
+		"whether to overwrite (delete) old Spark application if it is already running")
 
 	submitCmd.Flags().StringVarP(&Class, "class", "", "",
 		"the main class of the Spark application")
