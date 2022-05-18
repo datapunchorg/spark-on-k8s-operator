@@ -117,17 +117,17 @@ var submitCmd = &cobra.Command{
 			},
 		}
 
-		submissionId := CreationSubmissionId
+		submissionId := ""
 		var err error
-		if submissionId == "" {
+		if CreationSubmissionId == "" {
 			submissionId, err = client.SubmitApplication(request)
 			if err != nil {
-				ExitWithErrorF("Failed to submit application: %s", err.Error())
+				ExitWithError(fmt.Sprintf("Failed to submit application: %s", err.Error()))
 			}
 		} else {
-			submissionId, err = client.SubmitApplicationWithId(request, submissionId)
+			submissionId, err = client.SubmitApplicationWithId(request, CreationSubmissionId)
 			if err != nil {
-				ExitWithErrorF("Failed to submit application with id %s: %s", submissionId, err.Error())
+				ExitWithError(fmt.Sprintf("Failed to submit application with id %s: %s", CreationSubmissionId, err.Error()))
 			}
 		}
 
@@ -139,7 +139,7 @@ var submitCmd = &cobra.Command{
 			}
 			bytes, err := json.Marshal(out)
 			if err != nil {
-				ExitWithErrorF("Failed to marshal output to json: %s", err.Error())
+				ExitWithError(fmt.Sprintf("Failed to marshal output to json: %s", err.Error()))
 			}
 			WriteOutputFileExitOnError(OutputFile, string(bytes))
 		}

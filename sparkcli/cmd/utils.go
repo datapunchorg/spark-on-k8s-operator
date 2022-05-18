@@ -80,8 +80,3 @@ func ExitWithError(str string) {
 	fmt.Fprintln(os.Stderr, str)
 	os.Exit(1)
 }
-
-func ExitWithErrorF(a ...interface{}) {
-	fmt.Fprintln(os.Stderr, a)
-	os.Exit(1)
-}

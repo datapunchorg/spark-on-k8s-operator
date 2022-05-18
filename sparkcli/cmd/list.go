@@ -18,6 +18,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/spf13/cobra"
 	"log"
 )
@@ -33,12 +34,12 @@ var listCmd = &cobra.Command{
 
 		_, responseStruct, err := client.ListSubmissions(Limit)
 		if err != nil {
-			ExitWithErrorF("Failed to get application submissions: %s", err.Error())
+			ExitWithError(fmt.Sprintf("Failed to get application submissions: %s", err.Error()))
 		}
 
 		responseBytes, err := json.MarshalIndent(responseStruct, "", "  ")
 		if err != nil {
-			ExitWithErrorF("Failed to marshal application submissions: %s", err.Error())
+			ExitWithError(fmt.Sprintf("Failed to marshal application submissions: %s", err.Error()))
 		}
 
 		responseStr := string(responseBytes)

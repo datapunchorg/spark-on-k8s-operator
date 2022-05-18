@@ -40,7 +40,7 @@ var statusCmd = &cobra.Command{
 
 		responseStr, _, err := client.GetApplicationStatus(submissionId)
 		if err != nil {
-			ExitWithErrorF("Failed to get application status: %s", err.Error())
+			ExitWithError(fmt.Sprintf("Failed to get application status: %s", err.Error()))
 		}
 
 		if OutputFile != "" {
