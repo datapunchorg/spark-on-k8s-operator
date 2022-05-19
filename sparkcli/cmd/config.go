@@ -142,6 +142,47 @@ func (t *Config) GetCurrentCredential() (ServerCredential, error) {
 	}, nil
 }
 
+func (t *Config) GetCredentialByServer(server string) (ServerCredential, error) {
+	var foundClusterConfig *ClusterConfig = nil
+	for i := range t.Clusters {
+		if t.Clusters[i].Cluster.Server == server {
+			foundClusterConfig = &t.Clusters[i]
+			break
+		}
+	}
+	if foundClusterConfig == nil {
+		return ServerCredential{}, fmt.Errorf("did not find cluster for server %s", server)
+	}
+
+	var foundContextConfig *ContextConfig = nil
+	for i := range t.Contexts {
+		if t.Contexts[i].Context.Cluster == foundClusterConfig.Name {
+			foundContextConfig = &t.Contexts[i]
+			break
+		}
+	}
+	if foundContextConfig == nil {
+		return ServerCredential{}, fmt.Errorf("did not find context for cluster %s", foundClusterConfig.Name)
+	}
+
+	var foundUserConfig *UserConfig = nil
+	for i := range t.Users {
+		if t.Users[i].Name == foundContextConfig.Context.User {
+			foundUserConfig = &t.Users[i]
+			break
+		}
+	}
+	if foundUserConfig == nil {
+		return ServerCredential{}, fmt.Errorf("did not find password for user %s", foundContextConfig.Context.User)
+	}
+
+	return ServerCredential{
+		Server: foundClusterConfig.Cluster.Server,
+		User: foundUserConfig.Name,
+		Password: foundUserConfig.User.Password,
+	}, nil
+}
+
 func (t *Config) UpdateCurrentUserPassword(server string, user string, password string)  {
 	var foundClusterConfig *ClusterConfig = nil
 	for i := range t.Clusters {

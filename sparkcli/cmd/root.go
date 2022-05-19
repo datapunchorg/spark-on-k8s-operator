@@ -27,7 +27,7 @@ var ServerUrl string
 var InsecureHttps bool
 var User string
 var Password string
-var NoCredentialCache bool
+var IgnoreCredentialCache bool
 
 var OutputFile string
 
@@ -39,7 +39,7 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringVarP(&ServerUrl, "url", "l", "http://localhost:8080/sparkapi/v1",
+	rootCmd.PersistentFlags().StringVarP(&ServerUrl, "url", "l", "",
 		"The API gateway url to which the Spark application is to be submitted")
 	rootCmd.PersistentFlags().BoolVarP(&InsecureHttps, "insecure", "k", false,
 		"Whether to skip SSL certificate verification")
@@ -47,8 +47,8 @@ func init() {
 		"User name to connect to API gateway")
 	rootCmd.PersistentFlags().StringVarP(&Password, "password", "p", "",
 		"User password to connect to API gateway")
-	rootCmd.PersistentFlags().BoolVarP(&NoCredentialCache, "no-credential-cache", "", false,
-		"User password to connect to API gateway")
+	rootCmd.PersistentFlags().BoolVarP(&IgnoreCredentialCache, "ignore-credential-cache", "", false,
+		"Do not use credential from values in local config")
 	rootCmd.AddCommand(uploadCmd, submitCmd, statusCmd, logCommand, deleteCmd, listCmd)
 }
 
@@ -56,40 +56,60 @@ func Execute() {
 	rootCmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
 		InsecureTLS(InsecureHttps)
 
-		if !NoCredentialCache {
+		if !IgnoreCredentialCache {
 			filePath, err := GetDefaultConfigFilePath()
 			if err != nil {
-				log.Printf("Do not save credential due to failing to get default config file path: %s", err.Error())
+				log.Fatalf("Do not save credential due to failing to get default config file path: %s", err.Error())
 			}
 
 			config := NewConfig()
 			err = config.LoadIfExists(filePath)
 			if err != nil {
-				log.Printf("Failed to load config from file %s: %s", filePath, err.Error())
+				log.Fatalf("Failed to load config from file %s: %s", filePath, err.Error())
 			}
 
 			if ServerUrl != "" && User != "" && Password != "" {
 				config.UpdateCurrentUserPassword(ServerUrl, User, Password)
 				err = config.SaveToFile(filePath)
 				if err != nil {
-					log.Printf("Failed to save credential to file %s: %s", filePath, err.Error())
+					log.Fatalf("Failed to save credential to file %s: %s", filePath, err.Error())
 				}
 			}
 
-			credential, err := config.GetCurrentCredential()
-			if err != nil {
-				log.Printf("Failed to get current credential")
-			}
+			if ServerUrl == "" && User == "" && Password == "" {
+				credential, err := config.GetCurrentCredential()
+				if err != nil {
+					log.Fatalf("Failed to get current credential")
+				}
 
-			if ServerUrl == "" {
-				ServerUrl = credential.Server
+				if ServerUrl == "" {
+					ServerUrl = credential.Server
+				}
+				if User == "" {
+					User = credential.User
+				}
+				if Password == "" {
+					Password = credential.Password
+				}
+				log.Printf("No server information found in the command arguments, use credential from current context, server: %s, user: %s", ServerUrl, User)
+			} else if ServerUrl != "" && (User == "" || Password == "") {
+				credential, err := config.GetCredentialByServer(ServerUrl)
+				if err != nil {
+					log.Fatalf("Failed to get credential for server %s", ServerUrl)
+				}
+				if User == "" {
+					User = credential.User
+					log.Printf("Server %s provided in the command arguments, search local config and use user: %s", ServerUrl, User)
+				}
+				if Password == "" {
+					Password = credential.Password
+					log.Printf("Server %s provided in the command arguments, search local config and use password for user: %s", ServerUrl, User)
+				}
 			}
-			if User == "" {
-				User = credential.User
-			}
-			if Password == "" {
-				Password = credential.Password
-			}
+		}
+
+		if ServerUrl == "" {
+			log.Fatalf("Please provide server information using --url argument, e.g. --url http://server:port/sparkapi/v1")
 		}
 	}
 

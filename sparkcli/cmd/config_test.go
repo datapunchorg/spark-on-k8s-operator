@@ -110,3 +110,64 @@ func TestGetDefaultConfigFilePath(t *testing.T) {
 	assert.Nil(t, err)
 	assert.True(t, strings.HasSuffix(filePath, "/.sparkcli/config"))
 }
+
+func TestGetCredentialByServer(t *testing.T) {
+	config := NewConfig()
+	credential, err := config.GetCredentialByServer("server1")
+	assert.NotNil(t, err)
+	assert.Equal(t, "", credential.Server)
+
+	config.UpdateCurrentUserPassword("server1", "user1", "password1")
+
+	credential, err = config.GetCurrentCredential()
+	assert.Nil(t, err)
+	assert.Equal(t, "server1", credential.Server)
+	assert.Equal(t, "user1", credential.User)
+	assert.Equal(t, "password1", credential.Password)
+
+	credential, err = config.GetCredentialByServer("server1")
+	assert.Nil(t, err)
+	assert.Equal(t, "server1", credential.Server)
+	assert.Equal(t, "user1", credential.User)
+	assert.Equal(t, "password1", credential.Password)
+
+	config.UpdateCurrentUserPassword("server2", "user2", "password2")
+
+	credential, err = config.GetCurrentCredential()
+	assert.Nil(t, err)
+	assert.Equal(t, "server2", credential.Server)
+	assert.Equal(t, "user2", credential.User)
+	assert.Equal(t, "password2", credential.Password)
+
+	credential, err = config.GetCredentialByServer("server1")
+	assert.Nil(t, err)
+	assert.Equal(t, "server1", credential.Server)
+	assert.Equal(t, "user1", credential.User)
+	assert.Equal(t, "password1", credential.Password)
+
+	credential, err = config.GetCredentialByServer("server2")
+	assert.Nil(t, err)
+	assert.Equal(t, "server2", credential.Server)
+	assert.Equal(t, "user2", credential.User)
+	assert.Equal(t, "password2", credential.Password)
+
+	config.UpdateCurrentUserPassword("server1", "user1", "password11")
+
+	credential, err = config.GetCurrentCredential()
+	assert.Nil(t, err)
+	assert.Equal(t, "server1", credential.Server)
+	assert.Equal(t, "user1", credential.User)
+	assert.Equal(t, "password11", credential.Password)
+
+	credential, err = config.GetCredentialByServer("server1")
+	assert.Nil(t, err)
+	assert.Equal(t, "server1", credential.Server)
+	assert.Equal(t, "user1", credential.User)
+	assert.Equal(t, "password11", credential.Password)
+
+	credential, err = config.GetCredentialByServer("server2")
+	assert.Nil(t, err)
+	assert.Equal(t, "server2", credential.Server)
+	assert.Equal(t, "user2", credential.User)
+	assert.Equal(t, "password2", credential.Password)
+}
