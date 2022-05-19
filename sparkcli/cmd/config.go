@@ -265,18 +265,21 @@ func (t *Config) LoadIfExists(filePath string) error {
 // TODO add file lock to prevent concurrent write to config file
 
 func (t *Config) SaveToFile(filePath string) error {
+	WaitLockFile(filePath, 5 * 1000, true)
+	defer UnlockFile(filePath)
+
 	bytes, err := yaml2.Marshal(*t)
 	if err != nil {
 		return fmt.Errorf("failed to marshal config: %s", err.Error())
 	}
 	f, err := os.Create(filePath)
 	if err != nil {
-		return fmt.Errorf("failed to create filePath %s: %s", filePath, err.Error())
+		return fmt.Errorf("failed to create file %s: %s", filePath, err.Error())
 	}
 	defer f.Close()
 	_, err = f.WriteString(string(bytes))
 	if err != nil {
-		return fmt.Errorf("failed to write filePath %s: %s", filePath, err.Error())
+		return fmt.Errorf("failed to write file %s: %s", filePath, err.Error())
 	}
 	return nil
 }
