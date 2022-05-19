@@ -31,6 +31,7 @@ require (
 	k8s.io/client-go v0.19.6
 	k8s.io/kubectl v0.19.6
 	k8s.io/kubernetes v1.19.6
+	sigs.k8s.io/yaml v1.2.0 // indirect
 	volcano.sh/volcano v1.1.0
 )
 

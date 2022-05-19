@@ -18,6 +18,8 @@ package cmd
 
 import (
 	"github.com/stretchr/testify/assert"
+	"io/ioutil"
+	"strings"
 	"testing"
 )
 
@@ -78,4 +80,33 @@ func TestConfigData(t *testing.T) {
 	assert.Equal(t, "http://server3/sparkapi/v1", credential.Server)
 	assert.Equal(t, "user3", credential.User)
 	assert.Equal(t, "password3", credential.Password)
+}
+
+func TestWriteReadConfigFile(t *testing.T) {
+	config := NewConfig()
+	err := config.LoadFromFile("not_exist_file.abc")
+	assert.NotNil(t, err)
+
+	config.UpdateCurrentUserPassword("http://server1/sparkapi/v1", "user1", "password1")
+
+	file, err :=ioutil.TempFile("", "sparkcli_config_test_")
+	assert.NotNil(t, err)
+
+	filePath := file.Name()
+	config.SaveAsFile(filePath)
+
+	config = NewConfig()
+	config.LoadFromFile(filePath)
+
+	credential, err := config.GetCurrentCredential()
+	assert.Nil(t, err)
+	assert.Equal(t, "http://server1/sparkapi/v1", credential.Server)
+	assert.Equal(t, "user1", credential.User)
+	assert.Equal(t, "password1", credential.Password)
+}
+
+func TestGetDefaultConfigFilePath(t *testing.T) {
+	filePath, err := GetDefaultConfigFilePath()
+	assert.Nil(t, err)
+	assert.True(t, strings.HasSuffix(filePath, "/.sparkcli/config"))
 }

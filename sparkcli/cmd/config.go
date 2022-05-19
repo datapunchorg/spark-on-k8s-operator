@@ -16,7 +16,15 @@ limitations under the License.
 
 package cmd
 
-import "fmt"
+import (
+	"bytes"
+	"fmt"
+	"k8s.io/apimachinery/pkg/util/yaml"
+	"os"
+	"os/user"
+	"path/filepath"
+	yaml2 "sigs.k8s.io/yaml"
+)
 
 type Config struct {
 	ApiVersion string `json:"apiVersion" yaml:"apiVersion"`
@@ -61,9 +69,26 @@ type ServerCredential struct {
 	Password string
 }
 
+func GetDefaultConfigFilePath() (string, error) {
+	user, err := user.Current()
+	if err != nil {
+		return "", fmt.Errorf("failed to get current user: %s", err.Error())
+	}
+	homeDir := user.HomeDir
+	if homeDir == "" {
+		return "", fmt.Errorf("failed to get current user home directory (empty value)")
+	}
+	sparkcliDir := filepath.Join(homeDir, ".sparkcli")
+	err = os.MkdirAll(sparkcliDir, os.FileMode(0x770))
+	if err != nil {
+		return "", fmt.Errorf("failed to create dir %s: %s", sparkcliDir, err.Error())
+	}
+	return filepath.Join(sparkcliDir, "config"), nil
+}
+
 func NewConfig() Config {
 	return Config{
-		Kind: "SparkClientConfig",
+		Kind: "SparkcliConfig",
 		ApiVersion: "v1",
 		Clusters: make([]ClusterConfig, 0, 10),
 		Contexts: make([]ContextConfig, 0, 10),
@@ -176,4 +201,34 @@ func (t *Config) UpdateCurrentUserPassword(server string, user string, password 
 	} else {
 		foundUserConfig.User = userDetail
 	}
+}
+
+func (t *Config) LoadFromFile(file string) error {
+	bytesData, err := os.ReadFile(file)
+	if err != nil {
+		return fmt.Errorf("failed to read file %s: %s", file, err.Error())
+	}
+	decoder := yaml.NewYAMLOrJSONDecoder(bytes.NewReader(bytesData), len(bytesData))
+	err = decoder.Decode(t)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal data from file %s: %s", file, err.Error())
+	}
+	return nil
+}
+
+func (t *Config) SaveAsFile(filePath string) error {
+	bytes, err := yaml2.Marshal(*t)
+	if err != nil {
+		return fmt.Errorf("failed to marshal config: %s", err.Error())
+	}
+	f, err := os.Create(filePath)
+	if err != nil {
+		return fmt.Errorf("failed to create filePath %s: %s", filePath, err.Error())
+	}
+	defer f.Close()
+	_, err = f.WriteString(string(bytes))
+	if err != nil {
+		return fmt.Errorf("failed to write filePath %s: %s", filePath, err.Error())
+	}
+	return nil
 }
