@@ -177,7 +177,7 @@ var submitCmd = &cobra.Command{
 			}
 		}
 
-		log.Printf("You could check application log by running: sparkcli --user %s --password xxx-replace-with-real-password-xxx --insecure --url %s log %s", User, ServerUrl, submissionId)
+		log.Printf("You could check application log by running: sparkcli --insecure --url %s log %s", ServerUrl, submissionId)
 	},
 }
 
