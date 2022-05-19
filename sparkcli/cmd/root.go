@@ -19,6 +19,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/spf13/cobra"
+	"log"
 	"os"
 )
 
@@ -26,6 +27,7 @@ var ServerUrl string
 var InsecureHttps bool
 var User string
 var Password string
+var NoCredentialCache bool
 
 var OutputFile string
 
@@ -45,12 +47,50 @@ func init() {
 		"User name to connect to API gateway")
 	rootCmd.PersistentFlags().StringVarP(&Password, "password", "p", "",
 		"User password to connect to API gateway")
+	rootCmd.PersistentFlags().BoolVarP(&NoCredentialCache, "no-credential-cache", "", false,
+		"User password to connect to API gateway")
 	rootCmd.AddCommand(uploadCmd, submitCmd, statusCmd, logCommand, deleteCmd, listCmd)
 }
 
 func Execute() {
 	rootCmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
 		InsecureTLS(InsecureHttps)
+
+		if !NoCredentialCache {
+			filePath, err := GetDefaultConfigFilePath()
+			if err != nil {
+				log.Printf("Do not save credential due to failing to get default config file path: %s", err.Error())
+			}
+
+			config := NewConfig()
+			err = config.LoadIfExists(filePath)
+			if err != nil {
+				log.Printf("Failed to load config from file %s: %s", filePath, err.Error())
+			}
+
+			if ServerUrl != "" && User != "" && Password != "" {
+				config.UpdateCurrentUserPassword(ServerUrl, User, Password)
+				err = config.SaveToFile(filePath)
+				if err != nil {
+					log.Printf("Failed to save credential to file %s: %s", filePath, err.Error())
+				}
+			}
+
+			credential, err := config.GetCurrentCredential()
+			if err != nil {
+				log.Printf("Failed to get current credential")
+			}
+
+			if ServerUrl == "" {
+				ServerUrl = credential.Server
+			}
+			if User == "" {
+				User = credential.User
+			}
+			if Password == "" {
+				Password = credential.Password
+			}
+		}
 	}
 
 	if err := rootCmd.Execute(); err != nil {

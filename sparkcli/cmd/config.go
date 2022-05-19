@@ -18,6 +18,7 @@ package cmd
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"os"
@@ -79,7 +80,7 @@ func GetDefaultConfigFilePath() (string, error) {
 		return "", fmt.Errorf("failed to get current user home directory (empty value)")
 	}
 	sparkcliDir := filepath.Join(homeDir, ".sparkcli")
-	err = os.MkdirAll(sparkcliDir, os.FileMode(0x770))
+	err = os.MkdirAll(sparkcliDir, os.ModePerm)
 	if err != nil {
 		return "", fmt.Errorf("failed to create dir %s: %s", sparkcliDir, err.Error())
 	}
@@ -203,20 +204,26 @@ func (t *Config) UpdateCurrentUserPassword(server string, user string, password 
 	}
 }
 
-func (t *Config) LoadFromFile(file string) error {
-	bytesData, err := os.ReadFile(file)
+func (t *Config) LoadIfExists(filePath string) error {
+	if _, err := os.Stat(filePath); errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
+
+	bytesData, err := os.ReadFile(filePath)
 	if err != nil {
-		return fmt.Errorf("failed to read file %s: %s", file, err.Error())
+		return fmt.Errorf("failed to read filePath %s: %s", filePath, err.Error())
 	}
 	decoder := yaml.NewYAMLOrJSONDecoder(bytes.NewReader(bytesData), len(bytesData))
 	err = decoder.Decode(t)
 	if err != nil {
-		return fmt.Errorf("failed to unmarshal data from file %s: %s", file, err.Error())
+		return fmt.Errorf("failed to unmarshal data from filePath %s: %s", filePath, err.Error())
 	}
 	return nil
 }
 
-func (t *Config) SaveAsFile(filePath string) error {
+// TODO add file lock to prevent concurrent write to config file
+
+func (t *Config) SaveToFile(filePath string) error {
 	bytes, err := yaml2.Marshal(*t)
 	if err != nil {
 		return fmt.Errorf("failed to marshal config: %s", err.Error())

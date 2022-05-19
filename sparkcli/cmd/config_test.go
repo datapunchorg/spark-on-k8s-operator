@@ -84,19 +84,19 @@ func TestConfigData(t *testing.T) {
 
 func TestWriteReadConfigFile(t *testing.T) {
 	config := NewConfig()
-	err := config.LoadFromFile("not_exist_file.abc")
-	assert.NotNil(t, err)
+	err := config.LoadIfExists("not_exist_file.abc")
+	assert.Nil(t, err)
 
 	config.UpdateCurrentUserPassword("http://server1/sparkapi/v1", "user1", "password1")
 
-	file, err :=ioutil.TempFile("", "sparkcli_config_test_")
-	assert.NotNil(t, err)
+	file, err := ioutil.TempFile("", "sparkcli_config_test_")
+	assert.Nil(t, err)
 
 	filePath := file.Name()
-	config.SaveAsFile(filePath)
+	config.SaveToFile(filePath)
 
 	config = NewConfig()
-	config.LoadFromFile(filePath)
+	config.LoadIfExists(filePath)
 
 	credential, err := config.GetCurrentCredential()
 	assert.Nil(t, err)
