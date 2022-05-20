@@ -134,10 +134,19 @@ func DeleteExistingApplication(kubeClient kubernetes.Interface, crdClient crdcli
 		DeleteAndWaitPod(kubeClient, driverPodName, existingApp.Namespace)
 	}
 	for executorPodName := range existingApp.Status.ExecutorState {
-		DeleteAndWaitPod(kubeClient, executorPodName, existingApp.Namespace)
+		go DeletePod(kubeClient, executorPodName, existingApp.Namespace)
 	}
 	sparkUIServiceName := GetDefaultUIServiceName(existingApp)
 	DeleteAndWaitService(kubeClient, sparkUIServiceName, existingApp.Namespace)
+}
+
+func DeletePod(kubeClient kubernetes.Interface, podName string, namespace string) {
+	err := kubeClient.CoreV1().Pods(namespace).Delete(context.TODO(), podName, metav1.DeleteOptions{})
+	if err != nil {
+		glog.Infof("Failed to delete pod %s in namespace %s, ignore error: %s", podName, namespace, err.Error())
+	} else {
+		glog.Infof("Deleted pod %s in namespace %s", podName, namespace)
+	}
 }
 
 func DeleteAndWaitPod(kubeClient kubernetes.Interface, podName string, namespace string) {
