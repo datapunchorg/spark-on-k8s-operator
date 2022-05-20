@@ -173,6 +173,13 @@ func (sm *sparkAppMetrics) registerMetrics() {
 }
 
 func (sm *sparkAppMetrics) exportMetricsOnDelete(oldApp *v1beta2.SparkApplication) {
+	defer func() {
+		// recover from panic and ignore error
+		if err := recover(); err != nil {
+			glog.Infof("panic occurred in exportMetricsOnDelete, ignore it: %v", err)
+		}
+	}()
+
 	metricLabels := fetchMetricLabels(oldApp, sm.labels)
 	oldState := oldApp.Status.AppState.State
 	if oldState == v1beta2.RunningState {
