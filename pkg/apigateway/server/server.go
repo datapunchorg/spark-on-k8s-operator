@@ -108,13 +108,13 @@ func Run(config Config) {
 					"******************************",
 				userName, userPassword)
 		}
-		authnHandler := ChainedAuthenticationHandler{
-			Handlers: []AuthenticationHandler{
-				&SingleUserNamePasswordAuthenticationHandler{
+		authnHandler := ChainedBasicAuthHandler{
+			Handlers: []BasicAuthHandler{
+				&SingleUserBasicAuthHandler{
 					User: userName,
 					Password: userPassword,
 				},
-				&MultiUserNamePasswordsAuthenticationHandler{
+				&MultiUsersBasicAuthHandler{
 					UserPasswords: extraConfig.UserPasswords,
 				},
 			},

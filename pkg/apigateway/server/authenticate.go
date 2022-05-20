@@ -26,31 +26,31 @@ import (
 	"strings"
 )
 
-type AuthenticationHandler interface {
-	ValidateUserPassword(user string, password string) error
+type BasicAuthHandler interface {
+	ValidateUser(user string, password string) error
 }
 
-type SingleUserNamePasswordAuthenticationHandler struct {
+type SingleUserBasicAuthHandler struct {
 	User string
 	Password string
 }
 
-type MultiUserNamePasswordsAuthenticationHandler struct {
+type MultiUsersBasicAuthHandler struct {
 	UserPasswords map[string]string
 }
 
-type ChainedAuthenticationHandler struct {
-	Handlers []AuthenticationHandler
+type ChainedBasicAuthHandler struct {
+	Handlers []BasicAuthHandler
 }
 
-func (t *SingleUserNamePasswordAuthenticationHandler) ValidateUserPassword(user string, password string) error {
+func (t *SingleUserBasicAuthHandler) ValidateUser(user string, password string) error {
 	if t.User == user && t.Password == password {
 		return nil
 	}
 	return fmt.Errorf("failed to authenticate user %s", user)
 }
 
-func (t *MultiUserNamePasswordsAuthenticationHandler) ValidateUserPassword(user string, password string) error {
+func (t *MultiUsersBasicAuthHandler) ValidateUser(user string, password string) error {
 	expectedPassword, ok := t.UserPasswords[user]
 	if !ok {
 		return fmt.Errorf("failed to authenticate user %s", user)
@@ -61,16 +61,16 @@ func (t *MultiUserNamePasswordsAuthenticationHandler) ValidateUserPassword(user 
 	return fmt.Errorf("failed to authenticate user %s", user)
 }
 
-func (t *ChainedAuthenticationHandler) ValidateUserPassword(user string, password string) error {
+func (t *ChainedBasicAuthHandler) ValidateUser(user string, password string) error {
 	for _, handler := range t.Handlers {
-		if handler.ValidateUserPassword(user, password) == nil {
+		if handler.ValidateUser(user, password) == nil {
 			return nil
 		}
 	}
 	return fmt.Errorf("failed to authenticate user %s", user)
 }
 
-func BasicAuthForRealm(authenticationHandler AuthenticationHandler, realm string) gin.HandlerFunc {
+func BasicAuthForRealm(authenticationHandler BasicAuthHandler, realm string) gin.HandlerFunc {
 	if realm == "" {
 		realm = "Authorization Required"
 	}
@@ -108,7 +108,7 @@ func BasicAuthForRealm(authenticationHandler AuthenticationHandler, realm string
 		}
 		user := decodedCredentialsStr[0:index]
 		password := decodedCredentialsStr[index+1:]
-		err = authenticationHandler.ValidateUserPassword(user, password)
+		err = authenticationHandler.ValidateUser(user, password)
 		if err != nil {
 			glog.Warningf("failed to validate user password for %s: %s", user, err.Error())
 			c.Header("WWW-Authenticate", realm)
