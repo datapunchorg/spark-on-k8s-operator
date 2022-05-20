@@ -26,10 +26,13 @@ import (
 	"github.com/golang/glog"
 	"github.com/google/uuid"
 	"io/ioutil"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -75,50 +78,106 @@ func PostSubmissionWithId(c *gin.Context, config *ApiConfig) {
 
 	glog.Infof("Checking whether SparkApplication %s already exists in namespace %s", submissionId, config.SparkApplicationNamespace)
 	existingApp, getAppErr := crdClient.SparkoperatorV1beta2().SparkApplications(config.SparkApplicationNamespace).Get(context.TODO(), submissionId, metav1.GetOptions{})
-
 	if overwrite {
 		glog.Infof("Trying to delete SparkApplication %s in namespace %s due to overwrite mode", submissionId, config.SparkApplicationNamespace)
-		err := crdClient.SparkoperatorV1beta2().SparkApplications(config.SparkApplicationNamespace).Delete(context.TODO(), submissionId, metav1.DeleteOptions{})
-		if err != nil {
-			glog.Infof("Failed to delete SparkApplication %s in namespace %s, ignore and continue creating new SparkApplication: %s", submissionId, config.SparkApplicationNamespace, err.Error())
-		} else {
-			glog.Infof("Deleted existing SparkApplication %s in namespace %s", submissionId, config.SparkApplicationNamespace)
-		}
-		if getAppErr == nil && existingApp != nil {
-			driverPodName := existingApp.Status.DriverInfo.PodName
-			if driverPodName != "" {
-				err := kubeClient.CoreV1().Pods(existingApp.Namespace).Delete(context.TODO(), driverPodName, metav1.DeleteOptions{})
-				if err != nil {
-					glog.Infof("Failed to delete existing SparkApplication driver pod %s in namespace %s, ignore and continue creating new SparkApplication: %s", driverPodName, existingApp.Namespace, err.Error())
-				} else {
-					glog.Infof("Deleted existing SparkApplication driver pod %s in namespace %s", driverPodName, existingApp.Namespace)
-				}
-			}
-			for executorPodName := range existingApp.Status.ExecutorState {
-				err := kubeClient.CoreV1().Pods(existingApp.Namespace).Delete(context.TODO(), executorPodName, metav1.DeleteOptions{})
-				if err != nil {
-					glog.Infof("Failed to delete existing SparkApplication executor pod %s in namespace %s, ignore and continue creating new SparkApplication: %s", executorPodName, existingApp.Namespace, err.Error())
-				} else {
-					glog.Infof("Deleted existing SparkApplication executor pod %s in namespace %s", driverPodName, existingApp.Namespace)
-				}
-			}
-			sparkUIServiceName := GetDefaultUIServiceName(existingApp)
-			err = kubeClient.CoreV1().Services(existingApp.Namespace).Delete(context.TODO(), sparkUIServiceName, metav1.DeleteOptions{})
-			if err != nil {
-				glog.Infof("Failed to delete SparkApplication UI service %s in namespace %s, ignore and continue creating new SparkApplication: %s", sparkUIServiceName, existingApp.Namespace, err.Error())
+		if getAppErr == nil {
+			if existingApp == nil {
+				msg := fmt.Sprintf("Got nil value without error when checking SparkApplication %s in namespace %s", submissionId, config.SparkApplicationNamespace)
+				writeErrorResponse(c, http.StatusBadRequest, msg, nil)
+				return
 			} else {
-				glog.Infof("Deleted existing SparkApplication UI service %s in namespace %s", sparkUIServiceName, existingApp.Namespace)
+				DeleteExistingApplication(kubeClient, crdClient, existingApp)
+			}
+		} else {
+			if apierrors.IsNotFound(getAppErr) {
+				glog.Infof("SparkApplication %s in namespace %s not found, continue to create", submissionId, config.SparkApplicationNamespace)
+			} else {
+				msg := fmt.Sprintf("Got unexpected error when checking existing SparkApplication %s in namespace %s: %s", submissionId, config.SparkApplicationNamespace, getAppErr.Error())
+				writeErrorResponse(c, http.StatusBadRequest, msg, nil)
+				return
 			}
 		}
 	} else {
-		if getAppErr == nil {
-			msg := fmt.Sprintf("Cannot create SparkApplication %s since it already exists in namespace %s (created at %s)", submissionId, config.SparkApplicationNamespace, existingApp.CreationTimestamp)
-			writeErrorResponse(c, http.StatusBadRequest, msg, nil)
-			return
+		if getAppErr == nil{
+			if existingApp == nil {
+				msg := fmt.Sprintf("Got nil value without error when checking SparkApplication %s in namespace %s", submissionId, config.SparkApplicationNamespace)
+				writeErrorResponse(c, http.StatusBadRequest, msg, nil)
+				return
+			} else {
+				msg := fmt.Sprintf("Cannot create SparkApplication %s since it already exists in namespace %s (created at %s)", submissionId, existingApp.Name, existingApp.CreationTimestamp)
+				writeErrorResponse(c, http.StatusBadRequest, msg, nil)
+				return
+			}
+		} else {
+			if apierrors.IsNotFound(getAppErr) {
+				glog.Infof("SparkApplication %s in namespace %s not found, continue to create", submissionId, config.SparkApplicationNamespace)
+			} else {
+				msg := fmt.Sprintf("Got unexpected error when checking existing SparkApplication %s in namespace %s: %s", submissionId, config.SparkApplicationNamespace, getAppErr.Error())
+				writeErrorResponse(c, http.StatusBadRequest, msg, nil)
+				return
+			}
 		}
 	}
 
 	CreateSubmission(c, config, submissionId)
+}
+
+func DeleteExistingApplication(kubeClient kubernetes.Interface, crdClient crdclientset.Interface, existingApp *v1beta2.SparkApplication) {
+	err := crdClient.SparkoperatorV1beta2().SparkApplications(existingApp.Namespace).Delete(context.TODO(), existingApp.Name, metav1.DeleteOptions{})
+	if err != nil {
+		glog.Infof("Failed to delete SparkApplication %s in namespace %s, ignore error: %s", existingApp.Name, existingApp.Namespace, err.Error())
+	} else {
+		glog.Infof("Deleted existing SparkApplication %s in namespace %s", existingApp.Name, existingApp.Name)
+	}
+	driverPodName := existingApp.Status.DriverInfo.PodName
+	if driverPodName != "" {
+		DeleteAndWaitPod(kubeClient, driverPodName, existingApp.Namespace)
+	}
+	for executorPodName := range existingApp.Status.ExecutorState {
+		DeleteAndWaitPod(kubeClient, executorPodName, existingApp.Namespace)
+	}
+	sparkUIServiceName := GetDefaultUIServiceName(existingApp)
+	DeleteAndWaitService(kubeClient, sparkUIServiceName, existingApp.Namespace)
+}
+
+func DeleteAndWaitPod(kubeClient kubernetes.Interface, podName string, namespace string) {
+	err := kubeClient.CoreV1().Pods(namespace).Delete(context.TODO(), podName, metav1.DeleteOptions{})
+	if err != nil {
+		glog.Infof("Failed to delete pod %s in namespace %s, ignore error: %s", podName, namespace, err.Error())
+	} else {
+		glog.Infof("Deleted pod %s in namespace %s", podName, namespace)
+	}
+	retryErr := RetryUntilTrue(func() (bool, error) {
+		_, err = kubeClient.CoreV1().Pods(namespace).Get(context.TODO(), podName, metav1.GetOptions{})
+		if apierrors.IsNotFound(err) {
+			return true, nil
+		} else {
+			return false, nil
+		}
+	}, 30*time.Second, 100*time.Millisecond)
+	if retryErr != nil {
+		glog.Infof("Pod %s still exists in namespace %s, ignore error: %s", podName, namespace, err.Error())
+	}
+}
+
+func DeleteAndWaitService(kubeClient kubernetes.Interface, serviceName string, namespace string) {
+	err := kubeClient.CoreV1().Services(namespace).Delete(context.TODO(), serviceName, metav1.DeleteOptions{})
+	if err != nil {
+		glog.Infof("Failed to delete SparkApplication UI service %s in namespace %s, ignore error: %s", serviceName, namespace, err.Error())
+	} else {
+		glog.Infof("Deleted existing SparkApplication UI service %s in namespace %s", serviceName, namespace)
+	}
+	retryErr := RetryUntilTrue(func() (bool, error) {
+		_, err = kubeClient.CoreV1().Services(namespace).Get(context.TODO(), serviceName, metav1.GetOptions{})
+		if apierrors.IsNotFound(err) {
+			return true, nil
+		} else {
+			return false, nil
+		}
+	}, 30*time.Second, 100*time.Millisecond)
+	if retryErr != nil {
+		glog.Infof("Service %s still exists in namespace %s, ignore error: %s", serviceName, namespace, err.Error())
+	}
 }
 
 func CreateSubmission(c *gin.Context, config *ApiConfig, submissionId string) {

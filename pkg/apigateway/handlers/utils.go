@@ -22,6 +22,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang/glog"
 	"strings"
+	"time"
 )
 
 func writeErrorResponse(context *gin.Context, httpCode int, message string, err error) {
@@ -68,4 +69,24 @@ func trimStatusUrlFromSubmissions(url string) (string, error) {
 		return "", fmt.Errorf("invalid status url (not ending with /submissions/id/status): %s", url)
 	}
 	return strings.Join(urlParts[0:len(urlParts)-3], "/"), nil
+}
+
+func RetryUntilTrue(run func() (bool, error), maxWait time.Duration, retryInterval time.Duration) error {
+	currentTime := time.Now()
+	startTime := currentTime
+	endTime := currentTime.Add(maxWait)
+	for !currentTime.After(endTime) {
+		result, err := run()
+		if err != nil {
+			return err
+		}
+		if result {
+			return nil
+		}
+		if !currentTime.After(endTime) {
+			time.Sleep(retryInterval)
+		}
+		currentTime = time.Now()
+	}
+	return fmt.Errorf("timed out after running %d seconds while max wait time is %d seconds", int(currentTime.Sub(startTime).Seconds()), int(maxWait.Seconds()))
 }
