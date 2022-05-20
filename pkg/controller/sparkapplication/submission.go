@@ -63,8 +63,8 @@ func runSparkSubmit(submission *submission) (bool, error) {
 
 	cmd := execCommand(command, submission.args...)
 	glog.V(2).Infof("spark-submit arguments: %v", cmd.Args)
-	output, err := cmd.Output()
-	glog.V(3).Infof("spark-submit output: %s", string(output))
+	output, err := cmd.CombinedOutput()
+	glog.V(2).Infof("spark-submit output: %s", string(output))
 	if err != nil {
 		var errorMsg string
 		if exitErr, ok := err.(*exec.ExitError); ok {
