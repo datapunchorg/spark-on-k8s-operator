@@ -24,6 +24,7 @@ require (
 	github.com/stretchr/testify v1.4.0
 	golang.org/x/net v0.0.0-20201110031124-69a78807bb2b
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
+	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
 	k8s.io/api v0.19.6
 	k8s.io/apiextensions-apiserver v0.19.6
@@ -31,7 +32,7 @@ require (
 	k8s.io/client-go v0.19.6
 	k8s.io/kubectl v0.19.6
 	k8s.io/kubernetes v1.19.6
-	sigs.k8s.io/yaml v1.2.0 // indirect
+	sigs.k8s.io/yaml v1.2.0
 	volcano.sh/volcano v1.1.0
 )
 
