@@ -23,7 +23,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/google/go-cloud/blob/s3blob"
+	"gocloud.dev/blob/s3blob"
 )
 
 type blobS3 struct {
