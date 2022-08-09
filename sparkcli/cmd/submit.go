@@ -103,15 +103,15 @@ var submitCmd = &cobra.Command{
 				Arguments:           applicationArgs,
 				Driver: v1beta2.DriverSpec{
 					SparkPodSpec: v1beta2.SparkPodSpec{
-						Cores:          &DriverCores,
-						Memory:         &DriverMemory,
+						Cores:  &DriverCores,
+						Memory: &DriverMemory,
 					},
 				},
 				Executor: v1beta2.ExecutorSpec{
 					Instances: &NumExecutors,
 					SparkPodSpec: v1beta2.SparkPodSpec{
-						Cores:          &ExecutorCores,
-						Memory:         &ExecutorMemory,
+						Cores:  &ExecutorCores,
+						Memory: &ExecutorMemory,
 					},
 				},
 				SparkConf: sparkConfMap,
@@ -161,7 +161,7 @@ var submitCmd = &cobra.Command{
 					log.Fatalf("Failed to get status for application %s: %s", submissionId, err.Error())
 				}
 				state := statusResponse.State
-				if state == "COMPLETED" || state == "FAILED" || state == "SUBMISSION_FAILED" {
+				if state == "COMPLETED" || state == "FAILED" || state == "SUBMISSION_FAILED" || state == "SUCCESS" || state == "SUCCEEDED" {
 					log.Printf("Application %s finished: %s", submissionId, statusResponseStr)
 					applicationFinished = true
 					break
