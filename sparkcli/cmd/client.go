@@ -29,6 +29,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 type Client struct {
@@ -173,19 +174,39 @@ func (c *Client) GetApplicationStatus(submissionId string) (string, apigatewayv1
 	}
 	req.SetBasicAuth(c.credential.Name, c.credential.Password)
 
-	response, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return "", result,
-			fmt.Errorf("failed to get %s: %s", url, err.Error())
+	var lastError error
+	var responseBody io.ReadCloser
+	RetryUntilTrue(func() (bool, error) {
+		response, err := http.DefaultClient.Do(req)
+		if err != nil {
+			lastError = err
+			log.Printf("Failed to get %s: %s", url, err.Error())
+			return false, nil
+		}
+		if response.StatusCode != http.StatusOK {
+			lastError = ErrorBadHttpStatus(url, response)
+			log.Printf("Failed to get %s: %s", url, lastError.Error())
+			response.Body.Close()
+			return false, nil
+		}
+		lastError = nil
+		responseBody = response.Body
+		return true, nil
+	},
+		60*time.Second,
+		1*time.Second)
+
+	if lastError != nil {
+		return "", result, lastError
 	}
 
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		return "", result, ErrorBadHttpStatus(url, response)
+	if responseBody == nil {
+		return "", result, fmt.Errorf("failed to send http request and get response from %s: response body is nil", url)
 	}
 
-	responseBytes, err := io.ReadAll(response.Body)
+	defer responseBody.Close()
+
+	responseBytes, err := io.ReadAll(responseBody)
 	if err != nil {
 		return "", result,
 			fmt.Errorf("failed to read response data for %s: %s", url, err.Error())

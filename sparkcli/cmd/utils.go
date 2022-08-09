@@ -26,6 +26,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 )
 
 func CheckLocalFile(file string) (string, error) {
@@ -87,4 +88,24 @@ func WriteOutputFileExitOnError(filePath string, fileContent string) {
 func ExitWithError(str string) {
 	fmt.Fprintln(os.Stderr, str)
 	os.Exit(1)
+}
+
+func RetryUntilTrue(run func() (bool, error), maxWait time.Duration, retryInterval time.Duration) error {
+	currentTime := time.Now()
+	startTime := currentTime
+	endTime := currentTime.Add(maxWait)
+	for !currentTime.After(endTime) {
+		result, err := run()
+		if err != nil {
+			return err
+		}
+		if result {
+			return nil
+		}
+		if !currentTime.After(endTime) {
+			time.Sleep(retryInterval)
+		}
+		currentTime = time.Now()
+	}
+	return fmt.Errorf("timed out after running %d seconds while max wait time is %d seconds", int(currentTime.Sub(startTime).Seconds()), int(maxWait.Seconds()))
 }
