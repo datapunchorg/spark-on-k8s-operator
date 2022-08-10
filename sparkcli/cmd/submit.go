@@ -169,7 +169,12 @@ var submitCmd = &cobra.Command{
 					log.Fatalf("Failed to get status for application %s: %s", submissionId, err.Error())
 				}
 				state := statusResponse.State
-				if state == "COMPLETED" || state == "FAILED" || state == "SUBMISSION_FAILED" || state == "SUCCESS" || state == "SUCCEEDED" {
+				if strings.EqualFold(state, "COMPLETED") ||
+					strings.EqualFold(state, "FAILED") ||
+					strings.EqualFold(state, "SUBMISSION_FAILED") ||
+					strings.EqualFold(state, "SUCCESS") ||
+					strings.EqualFold(state, "SUCCEEDED") ||
+					strings.EqualFold(state, "CANCELLED") {
 					log.Printf("Application %s finished: %s", submissionId, statusResponseStr)
 					applicationFinished = true
 					break
