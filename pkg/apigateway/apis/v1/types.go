@@ -19,8 +19,9 @@ package v1
 import "github.com/GoogleCloudPlatform/spark-on-k8s-operator/pkg/apis/sparkoperator.k8s.io/v1beta2"
 
 type SparkApplicationSubmissionRequest struct {
+	ApplicationName              string `json:"applicationName,omitempty"`
 	v1beta2.SparkApplicationSpec `json:",inline"`
-	ApplicationDescription       string `json:"applicationDescription"`
+	ApplicationDescription       string `json:"applicationDescription,omitempty"`
 }
 
 type SparkApplicationSubmissionResponse struct {
@@ -32,11 +33,11 @@ type UploadFileResponse struct {
 }
 
 type SubmissionStatusResponse struct {
-	SubmissionId string `json:"submissionId"`
-	State        string `json:"state"`
-	ApplicationMessage string  `json:"applicationMessage,omitempty"`
-	SparkUI      string  `json:"sparkUI,omitempty"`
-	RecentAppId  string `json:"recentAppId,omitempty"`
+	SubmissionId       string `json:"submissionId"`
+	State              string `json:"state"`
+	ApplicationMessage string `json:"applicationMessage,omitempty"`
+	SparkUI            string `json:"sparkUI,omitempty"`
+	RecentAppId        string `json:"recentAppId,omitempty"`
 }
 
 type DeleteSubmissionResponse struct {

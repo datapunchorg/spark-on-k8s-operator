@@ -33,6 +33,8 @@ var SparkWaitAppCompletion = "spark.kubernetes.submission.waitAppCompletion"
 var CreationSubmissionId string
 var Overwrite bool
 
+var ApplicationName string
+
 var Image string
 var SparkVersion string
 var Type string
@@ -96,6 +98,7 @@ var submitCmd = &cobra.Command{
 		}
 
 		request := apigatewayv1.SparkApplicationSubmissionRequest{
+			ApplicationName: ApplicationName,
 			SparkApplicationSpec: v1beta2.SparkApplicationSpec{
 				Image:               &Image,
 				SparkVersion:        SparkVersion,
@@ -192,6 +195,9 @@ func init() {
 
 	submitCmd.Flags().BoolVarP(&Overwrite, "overwrite", "", false,
 		"whether to overwrite (delete) old Spark application if it is already running")
+
+	submitCmd.Flags().StringVarP(&ApplicationName, "application-name", "", "",
+		"the name of the Spark application")
 
 	submitCmd.Flags().StringVarP(&Class, "class", "", "",
 		"the main class of the Spark application")
