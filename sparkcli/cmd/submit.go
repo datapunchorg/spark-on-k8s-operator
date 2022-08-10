@@ -34,6 +34,7 @@ var CreationSubmissionId string
 var Overwrite bool
 
 var ApplicationName string
+var DesiredState string
 
 var Image string
 var SparkVersion string
@@ -99,6 +100,7 @@ var submitCmd = &cobra.Command{
 
 		request := apigatewayv1.SparkApplicationSubmissionRequest{
 			ApplicationName: ApplicationName,
+			DesiredState:    DesiredState,
 			SparkApplicationSpec: v1beta2.SparkApplicationSpec{
 				Image:               &Image,
 				SparkVersion:        SparkVersion,
@@ -198,6 +200,8 @@ func init() {
 
 	submitCmd.Flags().StringVarP(&ApplicationName, "application-name", "", "",
 		"the name of the Spark application")
+	submitCmd.Flags().StringVarP(&DesiredState, "desired-state", "", "",
+		"the desired state of the Spark application")
 
 	submitCmd.Flags().StringVarP(&Class, "class", "", "",
 		"the main class of the Spark application")

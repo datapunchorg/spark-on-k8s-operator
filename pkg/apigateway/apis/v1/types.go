@@ -20,6 +20,7 @@ import "github.com/GoogleCloudPlatform/spark-on-k8s-operator/pkg/apis/sparkopera
 
 type SparkApplicationSubmissionRequest struct {
 	ApplicationName              string `json:"applicationName,omitempty"`
+	DesiredState                 string `json:"desiredState,omitempty"`
 	v1beta2.SparkApplicationSpec `json:",inline"`
 	ApplicationDescription       string `json:"applicationDescription,omitempty"`
 }
