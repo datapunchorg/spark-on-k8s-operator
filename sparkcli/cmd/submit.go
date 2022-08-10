@@ -46,6 +46,8 @@ var Class string
 
 var SparkConf []string
 
+var FailureRetries int32
+
 var submitCmd = &cobra.Command{
 	Use:   "submit <application file> <application argument> <application argument>",
 	Short: "Submit a Spark application",
@@ -114,7 +116,8 @@ var submitCmd = &cobra.Command{
 						Memory: &ExecutorMemory,
 					},
 				},
-				SparkConf: sparkConfMap,
+				SparkConf:      sparkConfMap,
+				FailureRetries: &FailureRetries,
 			},
 		}
 
@@ -212,6 +215,9 @@ func init() {
 	submitCmd.Flags().Int32VarP(&ExecutorCores, "executor-cores", "", 1,
 		"")
 	submitCmd.Flags().StringVarP(&ExecutorMemory, "executor-memory", "", "1g",
+		"")
+
+	submitCmd.Flags().Int32VarP(&FailureRetries, "failure-retries", "", 0,
 		"")
 
 	// Make flag parsing stop after the first non-flag arg
