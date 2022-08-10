@@ -365,3 +365,55 @@ func (c *Client) DeleteApplication(submissionId string) (string, apigatewayv1.De
 
 	return responseStr, responseStruct, nil
 }
+
+func (c *Client) KillApplication(submissionId string) (string, apigatewayv1.KillSubmissionResponse, error) {
+	result := apigatewayv1.KillSubmissionResponse{}
+
+	url := fmt.Sprintf("%s/submissions/%s/kill", c.serverUrl, submissionId)
+
+	request := apigatewayv1.KillSubmissionRequest{}
+
+	requestBytes, err := json.Marshal(request)
+	if err != nil {
+		return "", result,
+			fmt.Errorf("failed to serialize request to json: %s", err.Error())
+	}
+
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(requestBytes))
+	if err != nil {
+		return "", result,
+			fmt.Errorf("failed to create post request for %s: %s", url, err.Error())
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.SetBasicAuth(c.credential.Name, c.credential.Password)
+
+	response, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", result,
+			fmt.Errorf("failed to post %s: %s", url, err.Error())
+	}
+
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return "", result, ErrorBadHttpStatus(url, response)
+	}
+
+	responseBytes, err := io.ReadAll(response.Body)
+	if err != nil {
+		return "", result,
+			fmt.Errorf("failed to read response data for %s: %s", url, err.Error())
+	}
+
+	responseStruct := apigatewayv1.KillSubmissionResponse{}
+	err = json.Unmarshal(responseBytes, &responseStruct)
+	if err != nil {
+		return "", result, fmt.Errorf("failed to parse response %s from %s: %s, response: %s", GetObjectTypeName(responseStruct), url, err.Error(), string(responseBytes))
+	}
+
+	if responseStruct.SubmissionId == "" {
+		return "", result, fmt.Errorf("failed to kill application, response: %s", string(responseBytes))
+	}
+
+	return string(responseBytes), responseStruct, nil
+}

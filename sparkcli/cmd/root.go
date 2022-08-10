@@ -49,7 +49,7 @@ func init() {
 		"User password to connect to API gateway")
 	rootCmd.PersistentFlags().BoolVarP(&IgnoreCredentialCache, "ignore-credential-cache", "", false,
 		"Do not use credential from values in local config")
-	rootCmd.AddCommand(uploadCmd, submitCmd, statusCmd, logCommand, deleteCmd, listCmd)
+	rootCmd.AddCommand(uploadCmd, submitCmd, statusCmd, logCommand, deleteCmd, killCmd, listCmd)
 }
 
 func Execute() {
@@ -118,7 +118,7 @@ func Execute() {
 	}
 }
 
-func addOutputFlag(cmd *cobra.Command)  {
+func addOutputFlag(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&OutputFile, "output", "o", "",
 		"the file to write output information")
 }
