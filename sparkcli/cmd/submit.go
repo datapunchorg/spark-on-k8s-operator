@@ -188,14 +188,15 @@ var submitCmd = &cobra.Command{
 				}
 			}
 
-			if !applicationFinished && !strings.EqualFold(state, "RUNNING") {
-				log.Fatalf("Application %s not finished or running", submissionId)
-			}
-
 			if PrintSparkLog {
+				log.Printf("Trying to get Spark log")
 				executorId := -1
 				followLogs := false
 				client.PrintApplicationLog(submissionId, executorId, followLogs)
+			}
+
+			if !applicationFinished && !strings.EqualFold(state, "RUNNING") {
+				log.Fatalf("Application %s not finished or running", submissionId)
 			}
 		}
 
