@@ -36,6 +36,7 @@ var Overwrite bool
 var ApplicationName string
 var DesiredState string
 var MaxWaitSeconds int64
+var PrintSparkLog bool
 
 var Image string
 var SparkVersion string
@@ -163,13 +164,14 @@ var submitCmd = &cobra.Command{
 			startTime := time.Now()
 			expireTime := startTime.Add(time.Duration(maxWaitSeconds) * time.Second)
 			applicationFinished := false
+			state := ""
 			for time.Now().Before(expireTime) {
 				// TODO add retry when getting status returns error
 				statusResponseStr, statusResponse, err := client.GetApplicationStatus(submissionId)
 				if err != nil {
 					log.Fatalf("Failed to get status for application %s: %s", submissionId, err.Error())
 				}
-				state := statusResponse.State
+				state = statusResponse.State
 				if strings.EqualFold(state, "COMPLETED") ||
 					strings.EqualFold(state, "FAILED") ||
 					strings.EqualFold(state, "SUBMISSION_FAILED") ||
@@ -186,8 +188,14 @@ var submitCmd = &cobra.Command{
 				}
 			}
 
-			if !applicationFinished {
-				log.Fatalf("Application %s not finished", submissionId)
+			if !applicationFinished && !strings.EqualFold(state, "RUNNING") {
+				log.Fatalf("Application %s not finished or running", submissionId)
+			}
+
+			if PrintSparkLog {
+				executorId := -1
+				followLogs := false
+				client.PrintApplicationLog(submissionId, executorId, followLogs)
 			}
 		}
 
@@ -210,6 +218,8 @@ func init() {
 		"the desired state of the Spark application")
 	submitCmd.Flags().Int64VarP(&MaxWaitSeconds, "max-wait-seconds", "", 24*60*60,
 		"")
+	submitCmd.Flags().BoolVarP(&PrintSparkLog, "print-spark-log", "", false,
+		"whether to print out Spark log after running the application")
 
 	submitCmd.Flags().StringVarP(&Class, "class", "", "",
 		"the main class of the Spark application")
