@@ -35,6 +35,7 @@ var Overwrite bool
 
 var ApplicationName string
 var DesiredState string
+var MaxWaitSeconds int64
 
 var Image string
 var SparkVersion string
@@ -157,10 +158,10 @@ var submitCmd = &cobra.Command{
 		}
 
 		if waitAppCompletion(sparkConfMap) {
-			maxWaitHours := 24 * time.Hour
+			maxWaitSeconds := MaxWaitSeconds
 			sleepInterval := 10 * time.Second
 			startTime := time.Now()
-			expireTime := startTime.Add(maxWaitHours * time.Hour)
+			expireTime := startTime.Add(time.Duration(maxWaitSeconds) * time.Second)
 			applicationFinished := false
 			for time.Now().Before(expireTime) {
 				// TODO add retry when getting status returns error
@@ -207,6 +208,8 @@ func init() {
 		"the name of the Spark application")
 	submitCmd.Flags().StringVarP(&DesiredState, "desired-state", "", "",
 		"the desired state of the Spark application")
+	submitCmd.Flags().Int64VarP(&MaxWaitSeconds, "max-wait-seconds", "", 24*60*60,
+		"")
 
 	submitCmd.Flags().StringVarP(&Class, "class", "", "",
 		"the main class of the Spark application")
