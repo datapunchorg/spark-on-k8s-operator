@@ -49,7 +49,7 @@ func init() {
 		"User password to connect to API gateway")
 	rootCmd.PersistentFlags().BoolVarP(&IgnoreCredentialCache, "ignore-credential-cache", "", false,
 		"Do not use credential from values in local config")
-	rootCmd.AddCommand(uploadCmd, submitCmd, statusCmd, logCommand, deleteCmd, killCmd, listCmd)
+	rootCmd.AddCommand(uploadCmd, submitCmd, statusCmd, logCommand, listCmd, deleteCmd, killCmd, killByNameCmd)
 }
 
 func Execute() {

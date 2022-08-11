@@ -67,3 +67,17 @@ type KillSubmissionResponse struct {
 	SubmissionId string `json:"submissionId"`
 	Message      string `json:"message"`
 }
+
+type KillSubmissionByNameRequest struct {
+	ApplicationName     string `json:"applicationName,omitempty"`
+	MaxApplicationCount int    `json:"maxApplicationCount,omitempty"`
+}
+
+type KillSubmissionByNameResponse struct {
+	KilledApplications []KillSubmissionResponseItem `json:"killedApplications"`
+}
+
+type KillSubmissionResponseItem struct {
+	SubmissionId string `json:"submissionId"`
+	Message      string `json:"message"`
+}
