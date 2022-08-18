@@ -84,6 +84,36 @@ var submitCmd = &cobra.Command{
 			}
 		}
 
+		pyFilesConfigKey := "spark.submit.pyFiles"
+		pyFiles := sparkConfMap[pyFilesConfigKey]
+		uploadedLocalPyFile := false
+		if pyFiles != "" {
+			items := strings.Split(pyFiles, ",")
+			finalItems := make([]string, 0, len(items))
+			for _, item := range items {
+				item = strings.TrimSpace(item)
+
+				localFile, _ := CheckLocalFile(item)
+				if localFile != "" {
+					log.Printf("Uploading local python file %s", localFile)
+					fileUrl, err := client.UploadFileToS3(localFile)
+					if err != nil {
+						log.Fatalf("Failed to upload local python file %s: %s", localFile, err.Error())
+					}
+					item = fileUrl
+					log.Printf("Uploaded local python file to %s", item)
+					uploadedLocalPyFile = true
+				}
+
+				finalItems = append(finalItems, item)
+			}
+			if uploadedLocalPyFile {
+				modifiedStr := strings.Join(finalItems, ",")
+				sparkConfMap[pyFilesConfigKey] = modifiedStr
+				log.Printf("Modified spark conf %s from %s to %s", pyFilesConfigKey, pyFiles, modifiedStr)
+			}
+		}
+
 		localApplicationFile, _ := CheckLocalFile(applicationFile)
 		if localApplicationFile != "" {
 			log.Printf("Uploading local applicaiton file %s", localApplicationFile)
