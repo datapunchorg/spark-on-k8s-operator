@@ -17,6 +17,7 @@ limitations under the License.
 package cmd
 
 import (
+	"archive/zip"
 	"crypto/tls"
 	"fmt"
 	"io"
@@ -25,6 +26,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"time"
@@ -121,4 +123,64 @@ func GetObjectTypeName(obj interface{}) string {
 	} else {
 		return t.Name()
 	}
+}
+
+func ZipDirAndSaveInDir(sourceDir string, targetDir string) (string, error) {
+	err := os.MkdirAll(targetDir, os.ModePerm)
+	if err != nil {
+		return "", fmt.Errorf("failed to create or check target dir %s: %s", targetDir, err.Error())
+	}
+
+	dirName := filepath.Base(sourceDir)
+	zipFileName := dirName + ".zip"
+	zipFilePath := filepath.Join(targetDir, zipFileName)
+	outFile, err := os.Create(zipFilePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to create zip file %s: %s", zipFilePath, err.Error())
+	}
+	defer outFile.Close()
+
+	writer := zip.NewWriter(outFile)
+	err = addZipFiles(writer, sourceDir, "")
+	if err != nil {
+		return "", fmt.Errorf("failed to read dir %s and add to zip file %s: %s", sourceDir, zipFilePath, err.Error())
+	}
+	err = writer.Close()
+	if err != nil {
+		return "", fmt.Errorf("failed to close zip file %s: %s", zipFilePath, err.Error())
+	}
+	return zipFilePath, nil
+}
+
+func addZipFiles(writer *zip.Writer, fileBasePath string, zipBasePath string) error {
+	files, err := ioutil.ReadDir(fileBasePath)
+	if err != nil {
+		return fmt.Errorf("failed to read directory %s: %s", fileBasePath, err.Error())
+	}
+	for _, file := range files {
+		filePath := filepath.Join(fileBasePath, file.Name())
+		zipPath := filepath.Join(zipBasePath, file.Name())
+		if !file.IsDir() {
+			data, err := ioutil.ReadFile(filePath)
+			if err != nil {
+				return fmt.Errorf("failed to read file %s: %s", filePath, err.Error())
+			}
+			f, err := writer.Create(zipPath)
+			if err != nil {
+				return fmt.Errorf("failed to create zip file entry %s: %s", filePath, err.Error())
+			}
+			_, err = f.Write(data)
+			if err != nil {
+				return fmt.Errorf("failed to write zip file entry %s: %s", filePath, err.Error())
+			}
+		} else if file.IsDir() {
+			newFileBase := filePath + "/"
+			newZipPath := zipPath + "/"
+			err = addZipFiles(writer, newFileBase, newZipPath)
+			if err != nil {
+				return fmt.Errorf("failed to add zip files %s into zip %s: %s", newFileBase, newZipPath, err.Error())
+			}
+		}
+	}
+	return nil
 }
