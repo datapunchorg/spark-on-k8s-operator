@@ -22,6 +22,7 @@ import (
 	apigatewayv1 "github.com/GoogleCloudPlatform/spark-on-k8s-operator/pkg/apigateway/apis/v1"
 	"github.com/GoogleCloudPlatform/spark-on-k8s-operator/pkg/apis/sparkoperator.k8s.io/v1beta2"
 	"github.com/spf13/cobra"
+	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -95,6 +96,23 @@ var submitCmd = &cobra.Command{
 
 				localFile, _ := CheckLocalFile(item)
 				if localFile != "" {
+					stat, err := os.Stat(localFile)
+					if err != nil {
+						log.Fatalf("Failed to check local file or directory %s: %s", localFile, err.Error())
+					}
+					if stat.IsDir() {
+						log.Printf("Local python file %s is directory, will zip it", localFile)
+						tempDir, err := ioutil.TempDir("", "pyfiles")
+						if err != nil {
+							log.Fatalf("Failed to create temp directory to store zip file for %s: %s", localFile, err.Error())
+						}
+						zipFilePath, err := ZipDirAndSaveInDir(localFile, tempDir)
+						if err != nil {
+							log.Fatalf("Failed to zip file %s and save in %s: %s", localFile, tempDir, err.Error())
+						}
+						log.Printf("Local python file %s is directory, zipped it to %s", localFile, zipFilePath)
+						localFile = zipFilePath
+					}
 					log.Printf("Uploading local python file %s", localFile)
 					fileUrl, err := client.UploadFileToS3(localFile)
 					if err != nil {

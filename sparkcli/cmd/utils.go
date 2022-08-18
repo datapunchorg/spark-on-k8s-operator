@@ -126,6 +126,15 @@ func GetObjectTypeName(obj interface{}) string {
 }
 
 func ZipDirAndSaveInDir(sourceDir string, targetDir string) (string, error) {
+	zipBasePath := ""
+	suffix := "/..."
+	if strings.HasSuffix(sourceDir, suffix) {
+		zipBasePath = ""
+		sourceDir = sourceDir[0 : len(sourceDir)-len(suffix)]
+	} else {
+		zipBasePath = filepath.Base(sourceDir)
+	}
+
 	err := os.MkdirAll(targetDir, os.ModePerm)
 	if err != nil {
 		return "", fmt.Errorf("failed to create or check target dir %s: %s", targetDir, err.Error())
@@ -141,7 +150,7 @@ func ZipDirAndSaveInDir(sourceDir string, targetDir string) (string, error) {
 	defer outFile.Close()
 
 	writer := zip.NewWriter(outFile)
-	err = addZipFiles(writer, sourceDir, "")
+	err = addZipFiles(writer, sourceDir, zipBasePath)
 	if err != nil {
 		return "", fmt.Errorf("failed to read dir %s and add to zip file %s: %s", sourceDir, zipFilePath, err.Error())
 	}
@@ -153,10 +162,24 @@ func ZipDirAndSaveInDir(sourceDir string, targetDir string) (string, error) {
 }
 
 func addZipFiles(writer *zip.Writer, fileBasePath string, zipBasePath string) error {
+	if zipBasePath != "" {
+		if !strings.HasSuffix(zipBasePath, string(os.PathSeparator)) {
+			zipBasePath += string(os.PathSeparator)
+		}
+		_, err := writer.Create(zipBasePath)
+		if err != nil {
+			return fmt.Errorf("failed to create zip dir entry %s: %s", zipBasePath, err.Error())
+		}
+	}
 	files, err := ioutil.ReadDir(fileBasePath)
 	if err != nil {
 		return fmt.Errorf("failed to read directory %s: %s", fileBasePath, err.Error())
 	}
+
+	if zipBasePath == "" && len(files) == 0 {
+		return fmt.Errorf("cannot write zip file, dir %s is empty and zip base path is empty", fileBasePath)
+	}
+
 	for _, file := range files {
 		filePath := filepath.Join(fileBasePath, file.Name())
 		zipPath := filepath.Join(zipBasePath, file.Name())

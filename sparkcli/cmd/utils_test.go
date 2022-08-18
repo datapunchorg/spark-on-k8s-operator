@@ -78,6 +78,9 @@ func TestZipDirAndSaveInDir(t *testing.T) {
 	assert.False(t, stat.IsDir())
 	assert.True(t, stat.Size() > 0)
 
+	zipFilePath, err = ZipDirAndSaveInDir(dir1+"/...", rootDir)
+	assert.NotNil(t, err)
+
 	dir2, err := ioutil.TempDir(dir1, "dir2")
 	assert.Nil(t, err)
 
@@ -100,6 +103,10 @@ func TestZipDirAndSaveInDir(t *testing.T) {
 	assert.Nil(t, err)
 
 	zipFilePath, err = ZipDirAndSaveInDir(dir1, rootDir)
+	assert.Nil(t, err)
+	assert.True(t, strings.HasSuffix(zipFilePath, "/"+zipFileName))
+
+	zipFilePath, err = ZipDirAndSaveInDir(dir1+"/...", rootDir)
 	assert.Nil(t, err)
 	assert.True(t, strings.HasSuffix(zipFilePath, "/"+zipFileName))
 }
