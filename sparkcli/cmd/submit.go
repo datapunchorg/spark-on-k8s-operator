@@ -96,11 +96,16 @@ var submitCmd = &cobra.Command{
 
 				localFile, _ := CheckLocalFile(item)
 				if localFile != "" {
-					stat, err := os.Stat(localFile)
-					if err != nil {
-						log.Fatalf("Failed to check local file or directory %s: %s", localFile, err.Error())
+					suffix := "/..."
+					isDir := strings.HasSuffix(localFile, suffix)
+					if !isDir {
+						stat, err := os.Stat(localFile)
+						if err != nil {
+							log.Fatalf("Failed to check local file or directory %s: %s", localFile, err.Error())
+						}
+						isDir = stat.IsDir()
 					}
-					if stat.IsDir() {
+					if isDir {
 						log.Printf("Local python file %s is directory, will zip it", localFile)
 						tempDir, err := ioutil.TempDir("", "pyfiles")
 						if err != nil {
