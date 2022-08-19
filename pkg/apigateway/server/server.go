@@ -165,6 +165,11 @@ func Run(config Config) {
 			handlers.ServeSparkUI(context, &apiConfig, apiRootPath + "/sparkui")
 		})
 
+	group.POST("/deploy/killByName",
+		func(context *gin.Context) {
+			handlers.KillSubmissionByName(context, &apiConfig)
+		})
+
 	group.GET("/health", handlers.HealthCheck)
 
 	router.Run(fmt.Sprintf(":%d", port))
