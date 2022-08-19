@@ -25,6 +25,8 @@ import (
 	"time"
 )
 
+const AppNameLabel = "appName"
+
 func writeErrorResponse(context *gin.Context, httpCode int, message string, err error) {
 	var str string
 	if message == "" && err == nil {

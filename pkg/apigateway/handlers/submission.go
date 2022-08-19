@@ -290,6 +290,14 @@ func CreateSubmission(c *gin.Context, config *ApiConfig, submissionId string) {
 		return
 	}
 
+	if request.ApplicationName != "" {
+		if app.ObjectMeta.Labels == nil {
+			app.ObjectMeta.Labels = map[string]string{}
+		}
+		// TODO normalize request.ApplicationName as label name, e.g. length limit
+		app.ObjectMeta.Labels[AppNameLabel] = request.ApplicationName
+	}
+
 	sparkConf := app.Spec.SparkConf
 	if sparkConf == nil {
 		sparkConf = map[string]string{}
