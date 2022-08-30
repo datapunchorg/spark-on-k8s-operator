@@ -275,6 +275,11 @@ func (c *Client) ListSubmissions(limit int64) (string, apigatewayv1.ListSubmissi
 }
 
 func (c *Client) PrintApplicationLog(submissionId string, executorId int, followLogs bool) {
+	writer := os.Stdout
+	c.WriteApplicationLog(submissionId, executorId, followLogs, writer)
+}
+
+func (c *Client) WriteApplicationLog(submissionId string, executorId int, followLogs bool, writer io.Writer) {
 	url := fmt.Sprintf("%s/submissions/%s/log", c.serverUrl, submissionId)
 
 	queryParameters := make([]string, 0, 5)
@@ -319,7 +324,8 @@ func (c *Client) PrintApplicationLog(submissionId string, executorId int, follow
 				return
 			}
 		} else {
-			fmt.Printf("%s", string(c))
+			str := fmt.Sprintf("%s", string(c))
+			writer.Write([]byte(str))
 		}
 	}
 }
