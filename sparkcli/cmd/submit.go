@@ -52,6 +52,8 @@ var Class string
 
 var SparkConf []string
 
+var TtlSeconds int64
+
 var FailureRetries int32
 
 var submitCmd = &cobra.Command{
@@ -181,6 +183,10 @@ var submitCmd = &cobra.Command{
 			},
 		}
 
+		if TtlSeconds > 0 {
+			request.TimeToLiveSeconds = &TtlSeconds
+		}
+
 		submissionId := ""
 		var err error
 		if CreationSubmissionId == "" {
@@ -299,6 +305,8 @@ func init() {
 	submitCmd.Flags().StringVarP(&ExecutorMemory, "executor-memory", "", "1g",
 		"")
 
+	submitCmd.Flags().Int64VarP(&TtlSeconds, "ttl-seconds", "", 0,
+		"")
 	submitCmd.Flags().Int32VarP(&FailureRetries, "failure-retries", "", 0,
 		"")
 
