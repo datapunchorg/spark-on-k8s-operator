@@ -55,9 +55,10 @@ type ListSubmissionsResponse struct {
 }
 
 type SparkApplicationSubmissionSummary struct {
-	SubmissionId string `json:"submissionId"`
-	State        string `json:"state"`
-	RecentAppId  string `json:"recentAppId"`
+	SubmissionId    string `json:"submissionId"`
+	ApplicationName string `json:"applicationName,omitempty"`
+	State           string `json:"state"`
+	RecentAppId     string `json:"recentAppId"`
 }
 
 type KillSubmissionRequest struct {
