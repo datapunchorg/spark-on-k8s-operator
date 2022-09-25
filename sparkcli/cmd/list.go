@@ -17,7 +17,6 @@ limitations under the License.
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/spf13/cobra"
 	"log"
@@ -32,17 +31,10 @@ var listCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		client := NewBasicAuthClient(ServerUrl, User, Password)
 
-		_, responseStruct, err := client.ListSubmissions(Limit)
+		responseStr, _, err := client.ListSubmissions(Limit)
 		if err != nil {
 			ExitWithError(fmt.Sprintf("Failed to get application submissions: %s", err.Error()))
 		}
-
-		responseBytes, err := json.MarshalIndent(responseStruct, "", "  ")
-		if err != nil {
-			ExitWithError(fmt.Sprintf("Failed to marshal application submissions: %s", err.Error()))
-		}
-
-		responseStr := string(responseBytes)
 
 		if OutputFile != "" {
 			WriteOutputFileExitOnError(OutputFile, responseStr)
