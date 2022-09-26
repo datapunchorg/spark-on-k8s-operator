@@ -229,38 +229,47 @@ func (c *Client) GetApplicationStatus(submissionId string) (string, apigatewayv1
 	return responseStr, responseStruct, nil
 }
 
-func (c *Client) ListSubmissions(limit int64) (string, apigatewayv1.ListSubmissionsResponse, error) {
+func (c *Client) ListSubmissions(limit int64, state string) (string, apigatewayv1.ListSubmissionsResponse, error) {
 	result := apigatewayv1.ListSubmissionsResponse{}
 
-	url := fmt.Sprintf("%s/submissions", c.serverUrl)
+	requestUrl := fmt.Sprintf("%s/submissions", c.serverUrl)
+
+	params := url.Values{}
 
 	if limit > 0 {
-		url += fmt.Sprintf("?limit=%d", limit)
+		params.Add("limit", fmt.Sprintf("%d", limit))
+	}
+	if State != "" {
+		params.Add("state", state)
 	}
 
-	req, err := http.NewRequest(http.MethodGet, url, bytes.NewReader([]byte{}))
+	if len(params) > 0 {
+		requestUrl = fmt.Sprintf("%s?%s", requestUrl, params.Encode())
+	}
+
+	req, err := http.NewRequest(http.MethodGet, requestUrl, bytes.NewReader([]byte{}))
 	if err != nil {
 		return "", result,
-			fmt.Errorf("failed to create get request for %s: %s", url, err.Error())
+			fmt.Errorf("failed to create get request for %s: %s", requestUrl, err.Error())
 	}
 	req.SetBasicAuth(c.credential.Name, c.credential.Password)
 
 	response, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return "", result,
-			fmt.Errorf("failed to get %s: %s", url, err.Error())
+			fmt.Errorf("failed to get %s: %s", requestUrl, err.Error())
 	}
 
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return "", result, ErrorBadHttpStatus(url, response)
+		return "", result, ErrorBadHttpStatus(requestUrl, response)
 	}
 
 	responseBytes, err := io.ReadAll(response.Body)
 	if err != nil {
 		return "", result,
-			fmt.Errorf("failed to read response data for %s: %s", url, err.Error())
+			fmt.Errorf("failed to read response data for %s: %s", requestUrl, err.Error())
 	}
 
 	responseStr := string(responseBytes)
@@ -268,7 +277,7 @@ func (c *Client) ListSubmissions(limit int64) (string, apigatewayv1.ListSubmissi
 	err = json.Unmarshal(responseBytes, &result)
 	if err != nil {
 		return responseStr, result,
-			fmt.Errorf("failed to parse response from %s: %s, response: %s", url, err.Error(), responseStr)
+			fmt.Errorf("failed to parse response from %s: %s, response: %s", requestUrl, err.Error(), responseStr)
 	}
 
 	return responseStr, result, nil

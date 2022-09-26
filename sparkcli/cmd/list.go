@@ -23,6 +23,7 @@ import (
 )
 
 var Limit int64
+var State string
 
 var listCmd = &cobra.Command{
 	Use:   "list",
@@ -31,7 +32,7 @@ var listCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		client := NewBasicAuthClient(ServerUrl, User, Password)
 
-		responseStr, _, err := client.ListSubmissions(Limit)
+		responseStr, _, err := client.ListSubmissions(Limit, State)
 		if err != nil {
 			ExitWithError(fmt.Sprintf("Failed to get application submissions: %s", err.Error()))
 		}
@@ -49,4 +50,7 @@ func init() {
 
 	listCmd.Flags().Int64VarP(&Limit, "limit", "", 0,
 		"limit of max number of items returned by the server")
+
+	listCmd.Flags().StringVarP(&State, "state", "", "",
+		"state of spark application to list")
 }
