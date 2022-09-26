@@ -24,6 +24,7 @@ import (
 
 var Limit int64
 var State string
+var IgnoreKilled bool
 
 var listCmd = &cobra.Command{
 	Use:   "list",
@@ -32,7 +33,7 @@ var listCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		client := NewBasicAuthClient(ServerUrl, User, Password)
 
-		responseStr, _, err := client.ListSubmissions(Limit, State)
+		responseStr, _, err := client.ListSubmissions(Limit, State, IgnoreKilled)
 		if err != nil {
 			ExitWithError(fmt.Sprintf("Failed to get application submissions: %s", err.Error()))
 		}
@@ -53,4 +54,7 @@ func init() {
 
 	listCmd.Flags().StringVarP(&State, "state", "", "",
 		"state of spark application to list")
+
+	listCmd.Flags().BoolVarP(&IgnoreKilled, "ignore-killed", "", false,
+		"ignore killed spark application")
 }

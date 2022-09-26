@@ -229,7 +229,7 @@ func (c *Client) GetApplicationStatus(submissionId string) (string, apigatewayv1
 	return responseStr, responseStruct, nil
 }
 
-func (c *Client) ListSubmissions(limit int64, state string) (string, apigatewayv1.ListSubmissionsResponse, error) {
+func (c *Client) ListSubmissions(limit int64, state string, ignoreKilled bool) (string, apigatewayv1.ListSubmissionsResponse, error) {
 	result := apigatewayv1.ListSubmissionsResponse{}
 
 	requestUrl := fmt.Sprintf("%s/submissions", c.serverUrl)
@@ -242,6 +242,7 @@ func (c *Client) ListSubmissions(limit int64, state string) (string, apigatewayv
 	if State != "" {
 		params.Add("state", state)
 	}
+	params.Add("ignoreKilled", fmt.Sprintf("%t", ignoreKilled))
 
 	if len(params) > 0 {
 		requestUrl = fmt.Sprintf("%s?%s", requestUrl, params.Encode())
