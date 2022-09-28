@@ -55,6 +55,9 @@ func init() {
 	listCmd.Flags().StringVarP(&State, "state", "", "",
 		"state of spark application to list")
 
+	listCmd.Flags().StringVarP(&ApplicationName, "application-name", "", "",
+		"the name of the Spark application")
+
 	listCmd.Flags().BoolVarP(&IgnoreKilled, "ignore-killed", "", false,
 		"ignore killed spark application")
 }

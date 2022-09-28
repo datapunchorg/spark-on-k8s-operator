@@ -242,6 +242,9 @@ func (c *Client) ListSubmissions(limit int64, state string, ignoreKilled bool) (
 	if State != "" {
 		params.Add("state", state)
 	}
+	if ApplicationName != "" {
+		params.Add("applicationName", ApplicationName)
+	}
 	params.Add("ignoreKilled", fmt.Sprintf("%t", ignoreKilled))
 
 	if len(params) > 0 {
