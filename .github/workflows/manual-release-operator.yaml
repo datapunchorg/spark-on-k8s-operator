@@ -1,6 +1,6 @@
 name: Manually release Spark Operator image
 
-on:
+on::
   workflow_dispatch:
     inputs:
       name:
@@ -42,4 +42,4 @@ jobs:
             docker build . --file Dockerfile --tag ghcr.io/datapunchorg/spark-on-k8s-operator:${IMAGE_TAG}
             docker images
             docker push ghcr.io/datapunchorg/spark-on-k8s-operator:${IMAGE_TAG}
-            echo Published docker image ghcr.io/datapunchorg/spark-on-k8s-operator:${IMAGE_TAG}-${
+            echo Published docker image ghcr.io/datapunchorg/spark-on-k8s-operator:${IMAGE_TAG}
