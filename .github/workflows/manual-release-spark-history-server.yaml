@@ -1,4 +1,4 @@
-name: Manually release Spark History Server
+name: Manually release Spark History Server image
 
 on:
   release:
