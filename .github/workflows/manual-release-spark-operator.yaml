@@ -1,4 +1,4 @@
-name: Manually release Spark Operator image
+name: Manually build and release Spark Operator image
 
 on:
   workflow_dispatch:
@@ -34,7 +34,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image
+      - name: Build and push docker image
           env:
             ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           run: |
