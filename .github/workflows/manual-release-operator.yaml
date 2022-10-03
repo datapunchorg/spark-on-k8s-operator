@@ -1,6 +1,6 @@
 name: Manually release Spark Operator image
 
-on::
+on:
   workflow_dispatch:
     inputs:
       name:
