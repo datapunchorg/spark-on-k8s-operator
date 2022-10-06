@@ -41,3 +41,5 @@ jobs:
           docker build . --file Dockerfile --tag ghcr.io/datapunchorg/spark-on-k8s-operator:${IMAGE_TAG}
           docker images
           docker push ghcr.io/datapunchorg/spark-on-k8s-operator:${IMAGE_TAG}
+          docker tag ghcr.io/datapunchorg/spark-on-k8s-operator:${IMAGE_TAG}  ghcr.io/datapunchorg/spark-on-k8s-operator:operator-${{github.ref_name}}
+          docker push ghcr.io/datapunchorg/spark-on-k8s-operator:operator-${{github.ref_name}}
