@@ -37,6 +37,6 @@ jobs:
 
       - name: Publish the Docker image for Spark History Server
         run: |
-          suffix=$(date +%s)
+          IMAGE_TAG=operator-${GITHUB_RUN_NUMBER}-${GITHUB_SHA::7}
           docker build -t ghcr.io/datapunchorg/spark-on-k8s-operator:spark-history-server-3.2-${{github.ref_name}}
           docker push ghcr.io/datapunchorg/spark-on-k8s-operator:spark-history-server-3.2-${{github.ref_name}}
