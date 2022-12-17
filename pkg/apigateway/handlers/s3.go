@@ -85,7 +85,7 @@ func uploadFileS3(c *gin.Context, s3Region string, s3Bucket string, s3Root strin
 	c.IndentedJSON(http.StatusOK, result)
 }
 
-func uploadFileGcs(c *gin.Context, s3Region string, s3Bucket string, s3Root string) {
+func uploadFileGcs(c *gin.Context, s3Region string, bucket string, rootDir string) {
 	nameQueryParamName := "name"
 	name, ok := c.GetQuery(nameQueryParamName)
 	if !ok || name == "" {
@@ -95,7 +95,7 @@ func uploadFileGcs(c *gin.Context, s3Region string, s3Bucket string, s3Root stri
 	}
 
 	nameHash := fmt.Sprintf("%s%s", name[0:1], name[len(name)-1:])
-	key := fmt.Sprintf("%s/%s/%s/%s", s3Root, nameHash, uuid.New().String(), name)
+	key := fmt.Sprintf("%s/%s/%s/%s", rootDir, nameHash, uuid.New().String(), name)
 
 	session, err := session.NewSession(
 		&aws.Config{
@@ -107,25 +107,25 @@ func uploadFileGcs(c *gin.Context, s3Region string, s3Bucket string, s3Root stri
 		return
 	}
 
-	glog.Infof("Uploading to s3, bucket: %s, key: %s", s3Bucket, key)
+	glog.Infof("Uploading to s3, bucket: %s, key: %s", bucket, key)
 
 	uploader := s3manager.NewUploader(session)
 	_, err = uploader.Upload(&s3manager.UploadInput{
-		Bucket: aws.String(s3Bucket),
+		Bucket: aws.String(bucket),
 		Key:    aws.String(key),
 		Body:   c.Request.Body,
 	})
 
 	if err != nil {
-		msg := fmt.Sprintf("Failed to upload to s3, bucket: %s, key: %s, error: %s", s3Bucket, key, err.Error())
+		msg := fmt.Sprintf("Failed to upload to s3, bucket: %s, key: %s, error: %s", bucket, key, err.Error())
 		writeErrorResponse(c, http.StatusInternalServerError, msg, nil)
 		return
 	}
 
-	glog.Infof("Uploaded to s3, bucket: %s, key: %s", s3Bucket, key)
+	glog.Infof("Uploaded to s3, bucket: %s, key: %s", bucket, key)
 
 	result := v1.UploadFileResponse{
-		Url: "s3a://" + s3Bucket + "/" + key,
+		Url: "gs://" + bucket + "/" + key,
 	}
 	c.IndentedJSON(http.StatusOK, result)
 }
